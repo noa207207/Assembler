@@ -1,2 +1,5 @@
 assembler
 prog.as
+*.o
+*.json
+/Users/noaelharrar/Documents/Assembler/.vscode/
