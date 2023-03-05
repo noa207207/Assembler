@@ -6,7 +6,7 @@
 #define MAX_ARRTIBUTE_LENGTH 15
 #define INST_AND_DIR_NUM 20
 
-#define MAX_REGISTERS 16
+#define MAX_REGISTERS 8
 #define MIN_INDEX_REG 10
 
 
@@ -85,9 +85,10 @@ typedef enum {
 typedef enum {
     IMMEDIATE,
     DIRECT,
-    JMP_M, //todo fix name
+    JMP_M, 
     REG_DIRECT,
-    BASE
+    BASE,
+    EMPTY
 } addr_method;
 
 typedef struct {
@@ -195,9 +196,9 @@ typedef struct {
 
 } line_info;
 
-extern opcode first_group[];// = {MOV, CMP, ADD, SUB, LEA};
-extern opcode second_group[];// = {NOT, CLR, INC, DEC, JMP, BNE, RED, PRN, JSR};
-extern opcode third_group[];// = {RTS, STOP};
+extern opcode first_group[];
+extern opcode second_group[];
+extern opcode third_group[];
 
 char *opcode_to_str(opcode op);
 bool opcode_in_group(opcode op, opcode group[], int count);

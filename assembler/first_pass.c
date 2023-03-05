@@ -31,13 +31,13 @@ int process_first_pass(head* headPtr, char* filename) {
 
       
         strcpy(original_line, line);
-    printf("[%d]: original_line = %s, line = %s, count = %d\n",
-            __LINE__, original_line, line, inst_count);
+    // printf("[%d]: original_line = %s, line = %s, count = %d\n",
+    //         __LINE__, original_line, line, inst_count);
 
         wordPointer = skip_spaces(line); /* Points at first word */
 
-        printf("[%d]: original_line = %s, line = %s, count = %d, wordPointer = %s\n",
-            __LINE__, original_line, line, inst_count, wordPointer);
+        // printf("[%d]: original_line = %s, line = %s, count = %d, wordPointer = %s\n",
+        //     __LINE__, original_line, line, inst_count, wordPointer);
 
         if ((shift = label_check(wordPointer, label)) != -1) {
             isLabel = True;
@@ -46,9 +46,6 @@ int process_first_pass(head* headPtr, char* filename) {
             wordPointer = skip_spaces(wordPointer);
         }
 
-        // printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
-        //     __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
-
         /* By here, points at first word after label, if label exists. */
         op = firstWord(wordPointer);
         wordPointer = skip_word(wordPointer);
@@ -56,8 +53,8 @@ int process_first_pass(head* headPtr, char* filename) {
         strcpy(line_copy, wordPointer);  //= STR,r6
 
 
-        printf("[%d]: wordPointer = %s, line_copy = %s, op = %d\n",
-            __LINE__, wordPointer, line_copy, (int)op);
+        // printf("[%d]: wordPointer = %s, line_copy = %s, op = %d\n",
+        //     __LINE__, wordPointer, line_copy, (int)op);
 
     
         if (op == ENTRY) /* Second Pass deals with this case. */
@@ -88,8 +85,8 @@ int process_first_pass(head* headPtr, char* filename) {
         isLabel = False;
 
 
-        printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
-            __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
+        // printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
+        //     __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
         inst_count = parse_inst_line(headPtr, original_line, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
     }
     fclose(filePointer);
@@ -122,7 +119,6 @@ opcode firstWord(char* line) {
         count++; /* Count characters of first word. */
     for (i = 0; i < OPCODE_SIZE; i++) {
         if (strlen(opcode_to_str((opcode)i)) == count && !strncmp(line, opcode_to_str((opcode)i), count)) {
-            printf("%s: %d\n",opcode_to_str((opcode)i), i);
             return i;
         }
     }

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "constants.h""
+#include "constants.h"
 #include "utils.h"
 
 /* Checks if the label is correct. Assumes line has a label. */
@@ -118,36 +118,35 @@ bool errors_in_data_line(char* original_line, char* line, int lineNumber, opcode
 /* Returns True if errors found in line with zero operands. */
 bool errors_zero_operands_inst(char* original_line, char* line, int lineNumber, opcode op) {
     if (op == -1) {
-        printf("Error on line %d: %opcode not recognized.\n", lineNumber, original_line);
+        printf("Error on line %d: %u opcode not recognized.\n", lineNumber, original_line);
         return True;
     }
 
+    printf("line  = %s\n", line);
     if (op == RTS || op == STOP)
         EXTRANEOUS_TEXT(line[0], lineNumber, original_line)
     return False;
 }
 
 /* Returns True if errors found in line with one operand. */
-bool errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction) {
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction) {
     /* Only destination matters. REG_DIRECT that is incorrect considered as DIRECT.*/
-    bool errors = False;
+    int err = 0;
 
-    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
-    COMMA_END(line, lineNumber, original_line)
+    err = check_one_operand_num(line, instruction->opcode);
 
-    if (instruction->dst_addr == IMMEDIATE) {
-        ERR_IMMEDIATE(line, lineNumber, original_line)
-    } else if (instruction->dst_addr == JMP) { //TODO: change to jmp for pass compilation
+    if (!err){
+        COMMA_END(line, lineNumber, original_line)
 
-        ERR_INDEX(line, lineNumber, original_line)
+        if (instruction->dst_addr == IMMEDIATE) {
+            ERR_IMMEDIATE(line, lineNumber, original_line)
+        } else if (instruction->dst_addr == JMP) { //TODO: change to jmp for pass compilation
+            ERR_INDEX(line, lineNumber, original_line)
+        }
+
+        INVALID_ADDR_METHOD(err, lineNumber, original_line)
     }
-
-    if ((instruction->dst_addr == IMMEDIATE && instruction->opcode != PRN_OP) || (instruction->dst_addr == REG_DIRECT && instruction->opcode == JMP_OP))
-        errors = True;
-
-    INVALID_ADDR_METHOD(errors, lineNumber, original_line)
-
-    return False;
+    return err;
 }
 
 /* Returns True if errors found in line with two operands. */
@@ -156,7 +155,7 @@ bool errors_two_operands_inst(char* original_line, char* line, char* first_word,
 
     errors = False;
 
-    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
+   // INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
     COMMA_END(line, lineNumber, original_line)
     CONSECUTIVE_COMMAS(line, lineNumber, original_line)
 
@@ -212,20 +211,28 @@ bool errors_index(char* str) {
 }
 
 /* Returns true if there's an invalid amount of operands in the line. Does not deal with RTS/STOP. */
-bool is_invalid_operand_num(char* str, opcode code) {
+int check_one_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
 
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");
 
-    if (code >= CLR_OP && code <= PRN_OP) { /* One operand */
-        if ((token = strtok(NULL, ",")) != NULL)
-            return True;
-    } else if (code >= MOV_OP && code <= LEA_OP)
-        if ((token = strtok(NULL, ",")) == NULL)
-            return True;
+    if ((token = strtok(NULL, ",")) != NULL)
+        return 0;
+    return 1;
+}
 
+/* Returns true if there's an invalid amount of operands in the line. Does not deal with RTS/STOP. */
+bool is_two_operand_num(char* str, opcode op) {
+    char line_copy[MAX_LINE_LENGTH];
+    char* token;
+
+    strcpy(line_copy, str);
+    token = strtok(line_copy, ",");
+
+    if ((token = strtok(NULL, ",")) == NULL)
+        return True;
     return False;
 }
 

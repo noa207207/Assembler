@@ -15,7 +15,6 @@ void process_file(char* filename)
 {
     char *updated_filename;
     head headPointer;
-    printf("hello world2\n");
 
     updated_filename = str_with_ext(filename, ".as");
 
@@ -26,6 +25,7 @@ void process_file(char* filename)
     free(updated_filename);
     updated_filename = str_with_ext(filename, ".am");
 
+
     process_first_pass(&headPointer, updated_filename);
 
     print_head_code_bin(&headPointer);
@@ -33,9 +33,8 @@ void process_file(char* filename)
 }
 int main()
 {
-
     char* filename = "prog2";
-    printf("hello world");
+    printf("hello world\n");
 
     process_file(filename);
 

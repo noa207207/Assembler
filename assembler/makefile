@@ -1,6 +1,6 @@
-MAIN_FLAG = gcc -g -Wall -ansi -pedantic
+MAIN_FLAG = gcc -g 
 
-OBJ_FLAG = gcc -c -Wall -ansi -pedantic
+OBJ_FLAG = gcc -c 
 
 OBJECTS = assembler.o utils.o pre_assembler.o data_structure.o first_pass.o second_pass.o parse.o errors.o output.o constants.o
 

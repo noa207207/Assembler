@@ -37,11 +37,11 @@
         return True;                                                                                                                                                \
     }
 
-#define INVALID_OPERANDS(str, op, line, original)                                    \
-    if (is_invalid_operand_num(str, op)) {                                           \
-        printf("Error on line %d: %sInvalid number of operands.\n", line, original); \
-        return True;                                                                 \
-    }
+// #define INVALID_OPERANDS(str, op, line, original)                                    \
+//     if (is_invalid_operand_num(str, op)) {                                           \
+//         printf("Error on line %d: %sInvalid number of operands.\n", line, original); \
+//         return True;                                                                 \
+//     }
 
 #define INVALID_ADDR_METHOD(errors, line, original)                                 \
     if (errors) {                                                                   \
@@ -54,12 +54,16 @@ bool is_duplicate_label(head *, char *, int);
 
 bool errors_in_data_line(char *, char *, int, opcode);
 bool errors_zero_operands_inst(char *, char *, int, opcode);
-bool errors_one_operand_inst(char *, char *, int, line_info *);
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction);
+int check_one_operand_num(char* str, opcode op);
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction);
 bool errors_two_operands_inst(char *, char *, char *, char *, int, line_info *);
 
 bool errors_immediate(char *);
 bool errors_index(char *);
 bool is_invalid_operand_num(char *, opcode);
+bool is_one_operand_num(char* str, opcode op);
+bool is_two_operand_num(char* str, opcode op);
 bool illegal_two_operands(addr_method, addr_method, opcode);
 
 bool isCorrectNum(char *);

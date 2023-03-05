@@ -26,6 +26,6 @@ bool isRegister(char *, line_info *, bool);
 void updateFunctAndOpcode(opcode, line_info *);
 addr_method operandMethod(char *, line_info *, bool);
 int howManyWords(addr_method, addr_method);
-
+bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd);
 
 #endif

@@ -167,23 +167,15 @@ void insert_direct_instruction(head* arr, char *label, unsigned int mem_address,
     direct_instruction *direct_inst_ptr = malloc(sizeof(direct_instruction));
     
     resize_img_arr(arr);
-
-    printf("%d\n", __LINE__);
-
     arr->code_image[idx].line = line;
     arr->code_image[idx].isExtern = False;
     direct_inst_ptr->memory_address = mem_address;
-    printf("%d\n", __LINE__);
     strcpy(direct_inst_ptr->label, label);
     direct_inst_ptr->era = attribute;
-    printf("%d\n", __LINE__);
     arr->code_image[idx].bin.direct_ptr = direct_inst_ptr;
     arr->code_image[idx].toDecode = 1;
     arr->code_image[idx].type = DIRECT;
-    printf("%d\n", __LINE__);
     arr->codeUsed++;
-
-    printf("%s\n",  arr->code_image[idx].bin.direct_ptr->label);
 }
 
 void insert_register_instruction(head* arr, unsigned int src_register, unsigned int dst_register, int attribute, int line)
