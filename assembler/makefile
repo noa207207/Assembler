@@ -2,7 +2,7 @@ MAIN_FLAG = gcc -g -Wall -ansi -pedantic
 
 OBJ_FLAG = gcc -c -Wall -ansi -pedantic
 
-OBJECTS = assembler.o utils.o pre_assembler.o data_structure.o first_pass.o second_pass.o parse.o errors.o output.o
+OBJECTS = assembler.o utils.o pre_assembler.o constants.o data_structure.o first_pass.o second_pass.o parse.o errors.o output.o
 
 HEADERS = assembler.h utils.h pre_assembler.h constants.h data_structure.h first_pass.h second_pass.h parse.h errors.h output.h
 
@@ -11,6 +11,9 @@ assembler: $(OBJECTS)
 
 assembler.o: assembler.c $(HEADERS)
 	$(OBJ_FLAG) assembler.c -o assembler.o
+
+constants.o: constants.c $(HEADERS)
+	$(OBJ_FLAG) constants.c -o constants.o
 
 pre_assembler.o: pre_assembler.c $(HEADERS)
 	$(OBJ_FLAG) pre_assembler.c -o pre_assembler.o
@@ -38,4 +41,3 @@ output.o: output.c $(HEADERS)
 
 clean:
 	rm *.o
-	
