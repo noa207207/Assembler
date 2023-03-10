@@ -45,9 +45,9 @@ char *opcode_to_str(opcode op)
     case ENTRY:
 		return ".entry"; break;
     case EXTERNAL:
-		return ".external"; break;
+		return ".extern"; break;
     case OPCODE_SIZE:
-		return "mov"; break;
+		return "unknown opcode"; break;
     default:
         return "unknown opcode"; break;
     }

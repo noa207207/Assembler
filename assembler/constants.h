@@ -88,6 +88,7 @@ typedef enum {
     JMP_M, 
     REG_DIRECT,
     BASE,
+    SYNGEL_DATA,
     EMPTY
 } addr_method;
 
@@ -99,6 +100,10 @@ typedef struct {
     unsigned int dst_addr;
     unsigned int era;
 } base_instruction;
+
+typedef struct {
+    unsigned int value;
+} single_data;
 
 typedef struct {
     unsigned int operand;
@@ -127,6 +132,7 @@ typedef union binary {
     immidiate_instruction *immidiate_ptr;
     direct_instruction *direct_ptr;
     register_instruction *register_ptr;
+    single_data *data_ptr;
 } binary;
 
 enum attributes {

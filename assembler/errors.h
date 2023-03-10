@@ -22,8 +22,10 @@
 #define COMMA_END(str, line, original)                                                      \
     if (str[strlen(str) - 1] == ',') {                                                      \
         printf("Error on line %d: %sExtraneous text after end of line.\n", line, original); \
-        return True;                                                                        \
-    }
+        return 1;                                                                        \
+    }                                                                                      
+
+
 
 #define ERR_IMMEDIATE(str, line, original)                                                                                               \
     if (errors_immediate(str)) {                                                                                                         \
@@ -37,11 +39,11 @@
         return True;                                                                                                                                                \
     }
 
-// #define INVALID_OPERANDS(str, op, line, original)                                    \
-//     if (is_invalid_operand_num(str, op)) {                                           \
-//         printf("Error on line %d: %sInvalid number of operands.\n", line, original); \
-//         return True;                                                                 \
-//     }
+#define INVALID_OPERANDS(str, op, line, original)                                    \
+    if (is_invalid_operand_num(str, op)) {                                           \
+        printf("Error on line %d: %sInvalid number of operands.\n", line, original); \
+        return 1;                                                                 \
+    }
 
 #define INVALID_ADDR_METHOD(errors, line, original)                                 \
     if (errors) {                                                                   \
@@ -56,12 +58,12 @@ bool errors_in_data_line(char *, char *, int, opcode);
 bool errors_zero_operands_inst(char *, char *, int, opcode);
 int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction);
 int check_one_operand_num(char* str, opcode op);
-int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction);
-bool errors_two_operands_inst(char *, char *, char *, char *, int, line_info *);
+int errors_two_operands_inst(char *, char *, char *, char *, int, line_info *);
+int check_two_operand_num(char* str, opcode op);
 
 bool errors_immediate(char *);
 bool errors_index(char *);
-bool is_invalid_operand_num(char *, opcode);
+int is_invalid_operand_num(char *, opcode);
 bool is_one_operand_num(char* str, opcode op);
 bool is_two_operand_num(char* str, opcode op);
 bool illegal_two_operands(addr_method, addr_method, opcode);

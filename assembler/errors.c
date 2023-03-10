@@ -12,7 +12,6 @@ bool errors_in_label(head* headPtr, char* original_line, char* line, int lineNum
     char* ptr;
     bool errors;
     int i, length, reg;
-    char* opNames[INST_AND_DIR_NUM] = {"mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop", ".data", ".string", ".entry", ".extern"};
 
     errors = False;
     i = 0;
@@ -23,7 +22,7 @@ bool errors_in_label(head* headPtr, char* original_line, char* line, int lineNum
 
     length = i;
 
-    if (length > 31 || isdigit(ptr[0]))
+    if (length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
         errors = True;
 
     for (i = 0; i < length; i++) {
@@ -31,14 +30,14 @@ bool errors_in_label(head* headPtr, char* original_line, char* line, int lineNum
             errors = True;
     }
 
-    for (i = 0; i < INST_AND_DIR_NUM; i++) {
-        if (strlen(opNames[i]) == length && !strncmp(line, opNames[i], length))
+    for (i = 0; i < OPCODE_SIZE; i++) {
+        if (strlen(opcode_to_str(i)) == length && !strncmp(line, opcode_to_str(i), length))
             errors = True;
     }
 
     reg = atoi(ptr + 1);
 
-    if (ptr[0] == 'r' && ((reg >= 0 && reg < MIN_INDEX_REG && length == strlen("r0")) || (reg >= MIN_INDEX_REG && reg < MAX_REGISTERS && length == strlen("r10"))))
+    if (ptr[0] == 'r' && ((reg >= 0 && reg < MAX_REGISTERS && length == strlen("r0"))))
         errors = True;
 
     if (is_duplicate_label(headPtr, line, length)) {
@@ -99,7 +98,7 @@ bool errors_in_data_line(char* original_line, char* line, int lineNumber, opcode
 
         CONSECUTIVE_COMMAS(line, lineNumber, original_line)
 
-        COMMA_END(line, lineNumber, original_line)
+        COMMA_END(line, lineNumber, original_line);
 
         token = strtok(line_copy, ",");
 
@@ -122,7 +121,6 @@ bool errors_zero_operands_inst(char* original_line, char* line, int lineNumber, 
         return True;
     }
 
-    printf("line  = %s\n", line);
     if (op == RTS || op == STOP)
         EXTRANEOUS_TEXT(line[0], lineNumber, original_line)
     return False;
@@ -133,31 +131,27 @@ int errors_one_operand_inst(char* original_line, char* line, int lineNumber, lin
     /* Only destination matters. REG_DIRECT that is incorrect considered as DIRECT.*/
     int err = 0;
 
-    err = check_one_operand_num(line, instruction->opcode);
+    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
 
-    if (!err){
-        COMMA_END(line, lineNumber, original_line)
+    COMMA_END(line, lineNumber, original_line);
 
-        if (instruction->dst_addr == IMMEDIATE) {
-            ERR_IMMEDIATE(line, lineNumber, original_line)
-        } else if (instruction->dst_addr == JMP) { //TODO: change to jmp for pass compilation
-            ERR_INDEX(line, lineNumber, original_line)
-        }
-
-        INVALID_ADDR_METHOD(err, lineNumber, original_line)
+    if (instruction->dst_addr == IMMEDIATE) {
+        ERR_IMMEDIATE(line, lineNumber, original_line)
     }
+
+    INVALID_ADDR_METHOD(err, lineNumber, original_line)
+
     return err;
 }
 
 /* Returns True if errors found in line with two operands. */
-bool errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info* instruction) {
-    bool errors;
+int errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info* instruction) {
+    int err = 0;
 
-    errors = False;
+    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line);
 
-   // INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
-    COMMA_END(line, lineNumber, original_line)
-    CONSECUTIVE_COMMAS(line, lineNumber, original_line)
+    COMMA_END(line, lineNumber, original_line);
+    CONSECUTIVE_COMMAS(line, lineNumber, original_line);
 
     /* REG_DIRECT has already been checked. DIRECT will be checked later. */
     if (instruction->src_addr == IMMEDIATE) {
@@ -171,13 +165,8 @@ bool errors_two_operands_inst(char* original_line, char* line, char* first_word,
     } else if (instruction->dst_addr == JMP) {
         ERR_INDEX(second_word, lineNumber, original_line)
     }
-
-    if (illegal_two_operands(instruction->src_addr, instruction->dst_addr, instruction->opcode))
-        errors = True;
-
-    INVALID_ADDR_METHOD(errors, lineNumber, original_line)
-
-    return False;
+    INVALID_ADDR_METHOD(err, lineNumber, original_line)
+    return err;
 }
 
 /* Assumes first character is '#'. Returns True if the string is not a legal integer number. */
@@ -210,30 +199,57 @@ bool errors_index(char* str) {
     return False;
 }
 
+int is_invalid_operand_num(char* str, opcode op) {
+    char line_copy[MAX_LINE_LENGTH];
+    char* token;
+
+    strcpy(line_copy, str);
+    token = strtok(line_copy, ",");
+
+    if (opcode_in_group(op, second_group, 9)) { /* One operand */
+        if ((token = strtok(NULL, ",")) != NULL)
+            return 1;
+    } else if (opcode_in_group(op, first_group, 5)) {
+        if ((token = strtok(NULL, ",")) == NULL)
+            return 1;
+        if ((token = strtok(NULL, ",")) != NULL)
+            return 1;
+    }
+    return 0;
+}
+
 /* Returns true if there's an invalid amount of operands in the line. Does not deal with RTS/STOP. */
 int check_one_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
-
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");
-
     if ((token = strtok(NULL, ",")) != NULL)
-        return 0;
-    return 1;
+        return 1;   
+    return 0;
 }
 
 /* Returns true if there's an invalid amount of operands in the line. Does not deal with RTS/STOP. */
-bool is_two_operand_num(char* str, opcode op) {
+int check_two_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
 
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");
 
-    if ((token = strtok(NULL, ",")) == NULL)
-        return True;
-    return False;
+    token = strtok(NULL, ",");
+    if (token == NULL){
+        
+        return 1;
+    }
+
+    token = strtok(NULL, ",");
+    if (token != NULL){
+        
+        return 1;
+    }
+        
+    return 0;
 }
 
 /* Returns True if the combination of operands received is illegal. */
@@ -262,6 +278,7 @@ bool isCorrectNum(char* str) {
 
 /* Returns True if there are two (or more) consecutive commas in the string provided. */
 bool isConsecutiveComma(char* str) {
+
     int i = 0;
     for (i = 0; i < strlen(str); i++) {
         if (str[i] == ',' && str[i + 1] == ',')
