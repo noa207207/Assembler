@@ -7,8 +7,6 @@ typedef struct {
     char symbol_name[MAX_LABEL_LENGTH];
     char atrributes[MAX_ARRTIBUTE_LENGTH]; /* Maybe not needed considering the bool */
     int value;
-    int base;
-    int offset;
 
     bool isExternal;
     bool isCode;
@@ -18,7 +16,6 @@ typedef struct {
 
 typedef struct {
     int line;
-	int code_line;
     char label[MAX_LABEL_LENGTH];
     int toDecode;
     bool isExtern;
@@ -46,7 +43,7 @@ void image_init(image*);
 void symbol_init(symbol*);
 
 /* Symbol table functions */
-void insert_symbol(head*, char*, int, int, int, opcode);
+void insert_symbol(head*, char*, int, opcode);
 void insert_data_symbol(head*, char*, int, opcode);
 void insert_extern(head*, char*, opcode);
 void insert_code_symbol(head*, char*, int, opcode);
@@ -74,5 +71,7 @@ void free_head(head*);
 int get_attribute(head*, char*);
 
 void print_head_code_bin(head* arr);
+void print_symbols(head* arr);
+void print_data(head* arr);
 
 #endif

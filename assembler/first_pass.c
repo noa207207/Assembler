@@ -29,10 +29,7 @@ int process_first_pass(head* headPtr, char* filename) {
         if (empty_string(line) || is_comment(line))
             continue;
 
-      
         strcpy(original_line, line);
-    // printf("[%d]: original_line = %s, line = %s, count = %d\n",
-    //         __LINE__, original_line, line, inst_count);
 
         wordPointer = skip_spaces(line); /* Points at first word */
 
@@ -41,7 +38,7 @@ int process_first_pass(head* headPtr, char* filename) {
 
         if ((shift = label_check(wordPointer, label)) != -1) {
             isLabel = True;
-            //err += (errors_in_label(headPtr, original_line, wordPointer, line_num));  TODO!!
+            errorsFound += (errors_in_label(headPtr, original_line, wordPointer, line_num));
             wordPointer += shift;
             wordPointer = skip_spaces(wordPointer);
         }
@@ -52,23 +49,22 @@ int process_first_pass(head* headPtr, char* filename) {
         delete_spaces(wordPointer); //= STR,r6
         strcpy(line_copy, wordPointer);  //= STR,r6
 
-
-        // printf("[%d]: wordPointer = %s, line_copy = %s, op = %d\n",
-        //     __LINE__, wordPointer, line_copy, (int)op);
-
-    
         if (op == ENTRY) /* Second Pass deals with this case. */
             continue;
         if (op == DATA || op == STRING) {
-            if (isLabel)
+            printf("op = %d\n", (int)op);
+            printf("label = %s\n", label);
+            if (isLabel) {
+                printf("is label\n");
                 insert_data_symbol(headPtr, label, data_count, op);
+            }
 
             isLabel = False;
-
             errorsFound = (errors_in_data_line(original_line, wordPointer, line_num, op)) ? True : errorsFound;
 
             if (!errorsFound)
                 data_count = parse_data_line(headPtr, wordPointer, data_count, op);
+                printf("data count = %d\n", data_count);
             continue;
         }
         if (op == EXTERNAL) {
@@ -79,8 +75,10 @@ int process_first_pass(head* headPtr, char* filename) {
         }
 
         /* By this point it must be an instruction line. */
-        if (isLabel)
+        if (isLabel) {
             insert_code_symbol(headPtr, label, inst_count, op);
+        }
+            
 
         isLabel = False;
 
@@ -88,10 +86,12 @@ int process_first_pass(head* headPtr, char* filename) {
         // printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
         //     __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
         inst_count = parse_inst_line(headPtr, original_line, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
+        printf("inst count  = %d\n", inst_count);
     }
     fclose(filePointer);
 
     update_data_count(headPtr, inst_count);
+
 
     return errorsFound;
 }
@@ -113,7 +113,6 @@ int label_check(char* line, char* label) {
 }
 /* Returns number of operation (first word). If it's incorrect then it returns -1. */
 opcode firstWord(char* line) {
-    //char* opNames[INST_AND_DIR_NUM] = {"mov", "cmp", "add", "sub", "lea", "clr", "not", "inc", "dec", "jmp", "bne", "jsr", "red", "prn", "rts", "stop", ".data", ".string", ".entry", ".extern"};
     int count = 0, i;
     for (i = 0; !isspace(line[i]) && line[i] != '\n'; i++)
         count++; /* Count characters of first word. */

@@ -18,16 +18,16 @@ int parse_data_line(head* headPtr, char* line, int data_count, opcode op) {
     if (op == STRING) {
         i = 1;
         while (line[i] != '\"') {
-            //insert_data_img(headPtr, (unsigned int)line[i], line_num++);
+            insert_data_img(headPtr, (unsigned int)line[i], line_num++);
             i++;
         }
-
-        //insert_data_img(headPtr, 0, line_num++);
+        insert_data_img(headPtr, 0, line_num++);
     } else {
         i = 0;
         arrayLength = getArrayLength(line);
+        printf("array len = %d\n", arrayLength);
         for (idx = 0; idx < arrayLength; idx++) {
-            //insert_data_img(headPtr, atoi(line), line_num++);
+            insert_data_img(headPtr, atoi(line), line_num++);
             line = nextNum(line);
         }
     }
@@ -76,15 +76,19 @@ int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_c
     }
 
     if (opcode_in_group(op, second_group, 9)) { /* If the operation requires one operand */
+
         targetAddr = operandMethod(line, &instruction, True);
 
-        // if (errors_one_operand_inst(original_line, line, line_num, &instruction)) {
-        //     *errorsFound = True;
-        //     return inst_count;
-        // }
+        if (errors_one_operand_inst(original_line, line, line_num, &instruction)) {
+            *errorsFound = True;
+            return inst_count;
+        }
 
-
-
+        if (targetAddr == DIRECT) {
+            //TODO: to check if neccasary tp  ckeck label is valid 
+            // contain a-z & 1-9
+        }
+    
         insert_base_instruction(headPtr, instruction.opcode, 0, targetAddr, A, inst_count++);
         switch (targetAddr)
         {
@@ -107,22 +111,21 @@ int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_c
         return inst_count;
     }
 
-    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires one operand */
+    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */
         token = strtok(line, ",");
         sourceAddr = operandMethod(token, &instruction, False);
-        // printf("source = %d\n", (int)sourceAddr);
         first_word = token;
         token = strtok(NULL, ",");
         if (token != NULL)
         targetAddr = operandMethod(token, &instruction, True);
         if (is_legal_lba(op, sourceAddr, targetAddr) == False)
             return inst_count; /*TODO*/
-        // printf("source = %d, target = %d\n", (int)sourceAddr, (int)targetAddr);
-        //TODO:
-        // if (errors_one_operand_inst(original_line, line, line_num, &instruction)) {
-        //     *errorsFound = True;
-        //     return inst_count;
-        // }
+
+        if (errors_two_operands_inst(original_line, line_copy, first_word, token, line_num, &instruction)) {
+            *errorsFound = True;
+            return inst_count;
+        }
+
         insert_base_instruction(headPtr, instruction.opcode, sourceAddr, targetAddr, A, inst_count++);
         if (sourceAddr == REG_DIRECT && targetAddr == REG_DIRECT) {
             insert_register_instruction(headPtr, instruction.src_reg, instruction.dst_reg, A, inst_count++);

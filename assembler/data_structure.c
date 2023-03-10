@@ -26,7 +26,8 @@ void symbol_init(symbol* node) {
 /* SYMBOLS */
 
 /* Handles insertion into symbol table. */
-void insert_symbol(head* arr, char* name, int value, int base, int offset, opcode op) {
+void insert_symbol(head* arr, char* name, int value, opcode op) {
+    printf("%s: name = %s, val = %d\n", __func__, name, value);
     int idx = arr->tableUsed;
     if (arr->tableUsed == arr->tableSize) {
         arr->tableSize *= 2;
@@ -35,8 +36,6 @@ void insert_symbol(head* arr, char* name, int value, int base, int offset, opcod
 
     strcpy(arr->table[idx].symbol_name, name);
     arr->table[idx].value = value;
-    arr->table[idx].base = base;
-    arr->table[idx].offset = offset;
 
     symbol_init(arr->table + idx);
 
@@ -54,18 +53,19 @@ void insert_symbol(head* arr, char* name, int value, int base, int offset, opcod
 
 /* Inserts into symbol table when the line is a data line. */
 void insert_data_symbol(head* arr, char* name, int value, opcode op) {
-    insert_symbol(arr, name, value, 0, 0, op);
+insert_symbol(arr, name, value, op);
 }
 
 /* Inserts into symbol table when the line is of type .extern. */
 void insert_extern(head* arr, char* line, opcode op) {
+
     delete_spaces(line);
-    insert_symbol(arr, line, 0, 0, 0, op);
+    insert_symbol(arr, line, 0, op);
 }
 
 /* Inserts into symbol table when dealing with an instruction line. */
 void insert_code_symbol(head* arr, char* name, int value, opcode op) {
-    insert_symbol(arr, name, value, getBase(value), getHist(value), op);
+    insert_symbol(arr, name, value, op);
 }
 
 /* Frees the symbol table's memory allocation. */
@@ -78,18 +78,20 @@ void free_symbol_table(head* arr) {
 /* DATA */
 
 /* Handles insertion into data image. */
-// void insert_data_img(head* arr, unsigned int data, int line) {
-//     int idx = arr->dataUsed;
-//     if (arr->dataUsed == arr->dataSize) {
-//         arr->dataSize *= 2;
-//         arr->data_image = (image*)realloc_with_monitor(arr->data_image, arr->dataSize * sizeof(image));
-//     }
-//     arr->data_image[idx].line = line;
-//     arr->data_image[idx].bin.word.opcode = data;
-//     arr->data_image[idx].bin.word.attribute = A;
+void insert_data_img(head* arr, unsigned int data, int line) {
 
-//     arr->dataUsed++;
-// }
+    int idx = arr->dataUsed;
+    single_data *data_ptr = malloc(sizeof(data));
+    
+    if (arr->dataUsed == arr->dataSize) {
+        arr->dataSize *= 2;
+        arr->data_image = (image*)realloc_with_monitor(arr->data_image, arr->dataSize * sizeof(image));
+    }
+    arr->data_image[idx].line = line;
+    data_ptr->value = data;
+    arr->data_image[idx].bin.data_ptr = data_ptr;
+    arr->dataUsed++;
+}
 /* This function updates the Data Count in the Symbol Table and line number in data-image after first pass. */
 void update_data_count(head* arr, int inst_count) {
     int idx;
@@ -100,8 +102,6 @@ void update_data_count(head* arr, int inst_count) {
     for (idx = 0; idx < arr->tableUsed; idx++)
         if (arr->table[idx].isData) {
             arr->table[idx].value += inst_count;
-            arr->table[idx].base = getBase(arr->table[idx].value);
-            arr->table[idx].offset = getHist(arr->table[idx].value);
         }
 }
 
@@ -255,5 +255,41 @@ void print_head_code_bin(head* arr)
              if (arr->code_image[i].type == DIRECT)
                 printf("DIRECT: label = %s\n",
                     arr->code_image[i].bin.direct_ptr->label);               
+        } 
+}
+
+void print_symbols(head* arr)
+{
+    int size = arr->tableUsed;
+    int i;
+
+        for (i = 0; i < size; i++)
+        {
+
+            printf("[%d]: s_name = %s, atr = %s, val = %d , ext = %d, code = %d, data  = %d,  entry = %d\n", 
+            i,
+            arr->table[i].symbol_name,
+            arr->table[i].atrributes,
+            arr->table[i].value,
+            (int)arr->table[i].isExternal,
+            (int)arr->table[i].isCode,
+            (int)arr->table[i].isData,
+            (int)arr->table[i].isEntry);              
+        } 
+}
+
+void print_data(head* arr)
+{
+    printf("data size = %d\n", arr->dataSize);
+    int size = arr->dataUsed;
+    int i;
+
+        for (i = 0; i < size; i++)
+        {
+            printf("[%d]: line = %d, value = %u\n", 
+            i,
+            arr->data_image[i].line,
+            arr->data_image[i].bin.data_ptr->value
+            );           
         } 
 }

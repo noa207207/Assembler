@@ -25,10 +25,13 @@ void process_file(char* filename)
     free(updated_filename);
     updated_filename = str_with_ext(filename, ".am");
 
-
     process_first_pass(&headPointer, updated_filename);
 
     print_head_code_bin(&headPointer);
+
+    print_symbols(&headPointer);
+
+    print_data(&headPointer);
 
 }
 int main()
