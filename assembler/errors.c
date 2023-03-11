@@ -1,14 +1,14 @@
 #include "errors.h"
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "constants.h"
 #include "utils.h"
+#include "data_structure.h"
 
 /* Checks if the label is correct. Assumes line has a label. */
-bool errors_in_label(head* headPtr, char* original_line, char* line, int lineNumber) {
+bool errors_in_label(head_ptr_t headPtr, char* original_line, char* line, int lineNumber) {
     char* ptr;
     bool errors;
     int i, length, reg;
@@ -48,16 +48,6 @@ bool errors_in_label(head* headPtr, char* original_line, char* line, int lineNum
         printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
         return True;
     }
-    return False;
-}
-
-/* Returns True if the label already exists in the Symbol Table. */
-bool is_duplicate_label(head* headPtr, char* line, int length) {
-    int i;
-    for (i = 0; i < headPtr->tableUsed; i++)
-        if (strlen(headPtr->table[i].symbol_name) == length && !strncmp(line, headPtr->table[i].symbol_name, length))
-            return True;
-
     return False;
 }
 

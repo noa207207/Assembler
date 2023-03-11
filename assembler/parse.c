@@ -14,7 +14,7 @@ opcode third_group[] = {RTS, STOP};
 opcode jmp_group[] = {JMP, BNE, JSR};
 
 /* This function parses a data line, and add it into the Data Image table. It returns the updated data-count. It assumes no errors in line. */
-int parse_data_line(head* headPtr, char* line, int data_count, opcode op) {
+int parse_data_line(head_ptr_t headPtr, char* line, int data_count, opcode op) {
     int i, idx, line_num = data_count, arrayLength;
     if (op == STRING) {
         i = 1;
@@ -50,7 +50,7 @@ int get_num_operands(char *line)
 }
 
 /* Parses an instruction line, returns the updated instruction-count. */
-int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
+int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
     addr_method sourceAddr, targetAddr;
     char *token, *first_word;
     char label[MAX_LABEL_LENGTH];
@@ -97,6 +97,7 @@ int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_c
 
         targetAddr = operandMethod(line, &instruction, True, &first_param_ptr, &second_param_ptr);
 
+        printf("target = %d\n", targetAddr);
         //  if (error_jmp_group(original_line, line_num)) {
         //     *errorsFound = True;
         //     return inst_count;
@@ -150,7 +151,7 @@ int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_c
     return inst_count;
 }
 
-int switch_and_insert(head* arr, line_info *instruction, int inst_count, addr_method address_method, bool is_dst)
+int switch_and_insert(head_ptr_t arr, line_info *instruction, int inst_count, addr_method address_method, bool is_dst)
 {
     if (!is_dst) {
         switch (address_method)
@@ -231,6 +232,7 @@ bool isImmediate(char* arg, line_info* instruction, bool isDst) {
             instruction->src_imm = atoi(arg + i);
         return True;
     }
+    printf("here!!\n");
     return False;
 }
 
@@ -245,6 +247,7 @@ bool isDirect(char* arg, line_info* instruction, bool isDst)
         instruction->src_addr = DIRECT;
         strcpy(instruction->src_label, arg);
     }
+    printf("direct\n");
     return True;
 }
 
@@ -272,14 +275,12 @@ bool is_jmp_param(char* arg, line_info* instruction, bool isDst, line_info **fir
         first = token = strtok(line, ",");
         printf("first = %s\n", first);
         first_param = operandMethod(token, *first_param_info, False, NULL, NULL);
-        printf("%S: first_param = %d, second_param = %d\n", __func__, (int)first_param, (int)second_param);
+        printf("%s: first_param = %d\n", __func__, (int)first_param);
         token = strtok(NULL, ")");
         printf("token = %s\n", token);
         if (token != NULL)
             second_param = operandMethod(token, *second_param_info, True, NULL, NULL);
-
-       printf("%s:222:  first_param = %d, second_param = %d\n", __func__, (*first_param_info)->src_reg, (*second_param_info)->dst_reg);
-
+         printf("%s: sec_param = %d\n", __func__, (int)second_param);
         // if (first_param == REG_DIRECT && second_param == REG_DIRECT) {
         //     (*first_param_info)->dst_reg = (*second_param_info)->dst_reg;
         //     *second_param_info = NULL;
@@ -323,6 +324,7 @@ bool isRegister(char* arg, line_info* instruction, bool isDst) {
 /* Returns the address method of string arg. Assumes arg is not a NULL pointer. */
 addr_method operandMethod(char* arg, line_info* instruction, bool isDst, line_info **first_param_info, line_info **second_param_info) {
     //TODO; verify id immidiate / direct/  register?
+    printf("%s: arg = %s, pointer = %p\n", __func__, arg, first_param_info);
     if (isRegister(arg, instruction, isDst))
         return REG_DIRECT;
     else if (isImmediate(arg, instruction, isDst))

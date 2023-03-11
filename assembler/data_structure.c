@@ -4,19 +4,57 @@
 #include <string.h>
 #include "utils.h"
 
+struct symbol{
+    char symbol_name[MAX_LABEL_LENGTH];
+    char atrributes[MAX_ARRTIBUTE_LENGTH]; /* Maybe not needed considering the bool */
+    int value;
+
+    bool isExternal;
+    bool isCode;
+    bool isData;
+    bool isEntry;
+};
+
+struct image{
+    int line;
+    char label[MAX_LABEL_LENGTH];
+    int toDecode;
+    bool isExtern;
+    binary bin;
+    addr_method type;
+};
+
+struct head{
+    symbol_ptr_t table;
+    image_ptr_t data_image;
+    image_ptr_t code_image;
+
+    int tableUsed;
+    int tableSize;
+
+    int dataUsed;
+    int dataSize;
+
+    int codeUsed;
+    int codeSize;
+};
+
 /* Initialization of head data structure. */
-void head_init(head* arr, int tableSize, int dataSize, int codeSize) {
-    arr->table = (symbol*)malloc_with_monitor(tableSize * sizeof(symbol));
-    arr->data_image = (image*)malloc_with_monitor(dataSize * sizeof(image));
-    arr->code_image = (image*)malloc_with_monitor(codeSize * sizeof(image));
-    arr->tableUsed = arr->dataUsed = arr->codeUsed = 0;
-    arr->tableSize = tableSize;
-    arr->dataSize = dataSize;
-    arr->codeSize = codeSize;
+head_ptr_t head_init(int tableSize, int dataSize, int codeSize) {
+    head_ptr_t tmp = (head_ptr_t)malloc_with_monitor(sizeof(struct head));
+    tmp->table = (symbol_ptr_t)malloc_with_monitor(tableSize * sizeof(struct symbol));
+    tmp->data_image = (image_ptr_t)malloc_with_monitor(dataSize * sizeof(struct image));
+    tmp->code_image = (image_ptr_t)malloc_with_monitor(codeSize * sizeof(struct image));
+    tmp->tableUsed = tmp->dataUsed = tmp->codeUsed = 0;
+    tmp->tableSize = tableSize;
+    tmp->dataSize = dataSize;
+    tmp->codeSize = codeSize;
+    printf("code codeSize = %d\n", tmp->codeSize);
+    return tmp;
 }
 
 /* Initialization of symbol node. */
-void symbol_init(symbol* node) {
+void symbol_init(symbol_ptr_t node) {
     node->isExternal = False;
     node->isCode = False;
     node->isData = False;
@@ -26,12 +64,12 @@ void symbol_init(symbol* node) {
 /* SYMBOLS */
 
 /* Handles insertion into symbol table. */
-void insert_symbol(head* arr, char* name, int value, opcode op) {
+void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
     printf("%s: name = %s, val = %d\n", __func__, name, value);
     int idx = arr->tableUsed;
     if (arr->tableUsed == arr->tableSize) {
         arr->tableSize *= 2;
-        arr->table = (symbol*)realloc_with_monitor(arr->table, arr->tableSize * sizeof(symbol));
+        arr->table = (symbol_ptr_t)realloc_with_monitor(arr->table, arr->tableSize * sizeof(struct symbol));
     }
 
     strcpy(arr->table[idx].symbol_name, name);
@@ -52,24 +90,24 @@ void insert_symbol(head* arr, char* name, int value, opcode op) {
 }
 
 /* Inserts into symbol table when the line is a data line. */
-void insert_data_symbol(head* arr, char* name, int value, opcode op) {
+void insert_data_symbol(head_ptr_t arr, char* name, int value, opcode op) {
 insert_symbol(arr, name, value, op);
 }
 
 /* Inserts into symbol table when the line is of type .extern. */
-void insert_extern(head* arr, char* line, opcode op) {
+void insert_extern(head_ptr_t arr, char* line, opcode op) {
 
     delete_spaces(line);
     insert_symbol(arr, line, 0, op);
 }
 
 /* Inserts into symbol table when dealing with an instruction line. */
-void insert_code_symbol(head* arr, char* name, int value, opcode op) {
+void insert_code_symbol(head_ptr_t arr, char* name, int value, opcode op) {
     insert_symbol(arr, name, value, op);
 }
 
 /* Frees the symbol table's memory allocation. */
-void free_symbol_table(head* arr) {
+void free_symbol_table(head_ptr_t arr) {
     free(arr->table);
     arr->table = NULL;
     arr->tableUsed = arr->tableSize = 0;
@@ -78,14 +116,14 @@ void free_symbol_table(head* arr) {
 /* DATA */
 
 /* Handles insertion into data image. */
-void insert_data_img(head* arr, unsigned int data, int line) {
+void insert_data_img(head_ptr_t arr, unsigned int data, int line) {
 
     int idx = arr->dataUsed;
     single_data *data_ptr = malloc(sizeof(data));
     
     if (arr->dataUsed == arr->dataSize) {
         arr->dataSize *= 2;
-        arr->data_image = (image*)realloc_with_monitor(arr->data_image, arr->dataSize * sizeof(image));
+        arr->data_image = (image_ptr_t)realloc_with_monitor(arr->data_image, arr->dataSize * sizeof(struct image));
     }
     arr->data_image[idx].line = line;
     data_ptr->value = data;
@@ -93,7 +131,7 @@ void insert_data_img(head* arr, unsigned int data, int line) {
     arr->dataUsed++;
 }
 /* This function updates the Data Count in the Symbol Table and line number in data-image after first pass. */
-void update_data_count(head* arr, int inst_count) {
+void update_data_count(head_ptr_t arr, int inst_count) {
     int idx;
     for (idx = 0; idx < arr->dataUsed; idx++)
         arr->data_image[idx].line += inst_count;
@@ -106,7 +144,7 @@ void update_data_count(head* arr, int inst_count) {
 }
 
 /* Frees all memory allocations of data image. */
-void free_data_image(head* arr) {
+void free_data_image(head_ptr_t arr) {
     free(arr->data_image);
     arr->data_image = NULL;
     arr->dataUsed = arr->dataSize = 0;
@@ -114,16 +152,16 @@ void free_data_image(head* arr) {
 
 /* CODE */
 
-static int resize_img_arr(head* arr)
+static int resize_img_arr(head_ptr_t arr)
 {
      if (arr->codeUsed == arr->codeSize) {
         arr->codeSize += 100;
-        arr->code_image = (image*)realloc_with_monitor(arr->code_image, arr->codeSize * sizeof(image)); /* Add monitor */
+        arr->code_image = (image_ptr_t)realloc_with_monitor(arr->code_image, arr->codeSize * sizeof(struct image)); /* Add monitor */
     }
 }
 
 /* Handles insertion into code image when given an opcode. */
-void insert_base_instruction(head* arr, unsigned int opcode, unsigned int src_addr,
+void insert_base_instruction(head_ptr_t arr, unsigned int opcode, unsigned int src_addr,
                                 unsigned int dst_addr, int attribute, int line)
 {
     int idx = arr->codeUsed;
@@ -143,7 +181,7 @@ void insert_base_instruction(head* arr, unsigned int opcode, unsigned int src_ad
     arr->code_image[idx].type = BASE;
 }
 
-void insert_immidiate_instruction(head* arr, unsigned int operand, int attribute, int line)
+void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attribute, int line)
 {
     int idx = arr->codeUsed;
     immidiate_instruction *imm_inst_ptr = malloc(sizeof(immidiate_instruction));
@@ -161,7 +199,7 @@ void insert_immidiate_instruction(head* arr, unsigned int operand, int attribute
     arr->codeUsed++;
 }
 
-void insert_direct_instruction(head* arr, char *label, unsigned int mem_address, int attribute, int line)
+void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_address, int attribute, int line)
 {
     int idx = arr->codeUsed;
     direct_instruction *direct_inst_ptr = malloc(sizeof(direct_instruction));
@@ -178,7 +216,7 @@ void insert_direct_instruction(head* arr, char *label, unsigned int mem_address,
     arr->codeUsed++;
 }
 
-void insert_register_instruction(head* arr, unsigned int src_register, unsigned int dst_register, int attribute, int line)
+void insert_register_instruction(head_ptr_t arr, unsigned int src_register, unsigned int dst_register, int attribute, int line)
 {
     int idx = arr->codeUsed;
     register_instruction *register_inst_ptr = malloc(sizeof(register_instruction));
@@ -197,21 +235,21 @@ void insert_register_instruction(head* arr, unsigned int src_register, unsigned 
 }
 
 /* Frees all memory allocations in code image. */
-void free_code_image(head* arr) {
+void free_code_image(head_ptr_t arr) {
     free(arr->code_image);
     arr->code_image = NULL;
     arr->codeUsed = arr->codeSize = 0;
 }
 
 /* Frees all memory allocations of main DS head. */
-void free_head(head* arr) {
+void free_head(head_ptr_t arr) {
     free_symbol_table(arr);
     free_data_image(arr);
     free_code_image(arr);
 }
 
 /* Receives symbol name and returns its attribute (R,E) assuming BASE/HIST. If doesn't exist, returns -1. */
-int get_attribute(head* headPtr, char* symbol) {
+int get_attribute(head_ptr_t headPtr, char* symbol) {
     int i, length;
 
     length = headPtr->tableUsed;
@@ -228,11 +266,22 @@ int get_attribute(head* headPtr, char* symbol) {
     return -1;
 }
 
-void print_head_code_bin(head* arr)
+/* Returns True if the label already exists in the Symbol Table. */
+bool is_duplicate_label(head_ptr_t headPtr, char* line, int length) {
+    int i;
+    for (i = 0; i < headPtr->tableUsed; i++)
+        if (strlen(headPtr->table[i].symbol_name) == length && !strncmp(line, headPtr->table[i].symbol_name, length))
+            return True;
+
+    return False;
+}
+
+void print_head_code_bin(head_ptr_t arr)
 {
         int size = arr->codeUsed;
         int i;
 
+        printf("code bin\n");
         for (i = 0; i < size; i++)
         {
             printf("[%d]: line = %d, is_extern = %d, to_decode = %d ", i, arr->code_image[i].line,
@@ -258,7 +307,7 @@ void print_head_code_bin(head* arr)
         } 
 }
 
-void print_symbols(head* arr)
+void print_symbols(head_ptr_t arr)
 {
     int size = arr->tableUsed;
     int i;
@@ -278,7 +327,7 @@ void print_symbols(head* arr)
         } 
 }
 
-void print_data(head* arr)
+void print_data(head_ptr_t arr)
 {
     printf("data size = %d\n", arr->dataSize);
     int size = arr->dataUsed;

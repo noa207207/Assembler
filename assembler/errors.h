@@ -51,8 +51,8 @@
         return True;                                                                \
     }
 
-bool errors_in_label(head *, char *, char *, int);
-bool is_duplicate_label(head *, char *, int);
+bool errors_in_label(head_ptr_t, char *, char *, int);
+bool is_duplicate_label(head_ptr_t, char *, int);
 
 bool errors_in_data_line(char *, char *, int, opcode);
 bool errors_zero_operands_inst(char *, char *, int, opcode);

@@ -10,7 +10,7 @@
 #include "constants.h"
 
 /* The function is in charge of first pass. It returns False if no errors were found, otherwise returns True. */
-int process_first_pass(head* headPtr, char* filename) {
+int process_first_pass(head_ptr_t headPtr, char* filename) {
     int inst_count, data_count, shift, line_num;
     char line[MAX_LINE_LENGTH], label[MAX_LABEL_LENGTH], line_copy[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
     char* wordPointer;

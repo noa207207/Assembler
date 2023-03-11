@@ -11,8 +11,8 @@ enum addiotonal_words { ZERO_WORDS,
                         THREE_WORDS,
                         FOUR_WORDS };
 
-int parse_data_line(head *, char *, int, opcode);
-int parse_inst_line(head *, char *, char *, char *, int, opcode, bool *, int);
+int parse_data_line(head_ptr_t, char *, int, opcode);
+int parse_inst_line(head_ptr_t, char *, char *, char *, int, opcode, bool *, int);
 
 bool is_comment(char *);
 int getArrayLength(char *);
@@ -27,6 +27,6 @@ void updateFunctAndOpcode(opcode, line_info *);
 addr_method operandMethod(char* arg, line_info* instruction, bool isDst, line_info **first_param_info, line_info **second_param_info);
 int howManyWords(addr_method, addr_method);
 bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd);
-int switch_and_insert(head* arr, line_info *instruction, int inst_count, addr_method address_method, bool is_dst);
+int switch_and_insert(head_ptr_t arr, line_info *instruction, int inst_count, addr_method address_method, bool is_dst);
 
 #endif
