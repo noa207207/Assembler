@@ -85,7 +85,7 @@ typedef enum {
 typedef enum {
     IMMEDIATE,
     DIRECT,
-    JMP_M, 
+    JMP_PARAM, 
     REG_DIRECT,
     BASE,
     SYNGEL_DATA,
@@ -199,12 +199,17 @@ typedef struct {
 
     char src_label[MAX_LABEL_LENGTH];
     char dst_label[MAX_LABEL_LENGTH];
+    char tmp_label[MAX_LABEL_LENGTH];
+
+    addr_method first_param;
+    addr_method second_param;
 
 } line_info;
 
 extern opcode first_group[];
 extern opcode second_group[];
 extern opcode third_group[];
+extern opcode jmp_group[];
 
 char *opcode_to_str(opcode op);
 bool opcode_in_group(opcode op, opcode group[], int count);

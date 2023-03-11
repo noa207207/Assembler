@@ -60,6 +60,7 @@ int errors_one_operand_inst(char* original_line, char* line, int lineNumber, lin
 int check_one_operand_num(char* str, opcode op);
 int errors_two_operands_inst(char *, char *, char *, char *, int, line_info *);
 int check_two_operand_num(char* str, opcode op);
+bool error_jmp_group(char* original_line, int lineNumber);
 
 bool errors_immediate(char *);
 bool errors_index(char *);

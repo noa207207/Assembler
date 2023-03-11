@@ -169,6 +169,48 @@ int errors_two_operands_inst(char* original_line, char* line, char* first_word, 
     return err;
 }
 
+bool error_jmp_group(char* original_line, int lineNumber)
+{
+    bool err = False;
+    char tmp[MAX_LINE_LENGTH], *tmp2, *token;
+    int i = 0;
+    printf("%d: original_line = %s\n", __LINE__, original_line);
+
+    strcpy(tmp, original_line);
+    printf("tmp = %s\n", tmp);
+    // if (tmp[0] == ' ' || tmp[0] == '\t')
+    tmp2 = skip_spaces(tmp);
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    tmp2 = skip_word(tmp2);
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    tmp2 = skip_spaces(tmp2);
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    delete_new_line(tmp2);
+
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    while (tmp[i] != '(' && tmp[i])
+        i++;
+    tmp2 = tmp + i +1;
+     printf("%d: org = %s\n", __LINE__, original_line);
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    token = strtok(tmp2, ",");
+     printf("%d: org = %s\n", __LINE__, original_line);
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    if(strchr(token, ' ') != NULL)
+        err = True;
+    tmp2 = strtok(NULL, ")");
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    if(strchr(token, ' ') != NULL)
+        err = True;
+    tmp2 = strtok(NULL, ")");
+    printf("%d: tmp = %s\n", __LINE__, tmp2);
+    if (tmp2 != NULL)
+        err = True;
+    
+    INVALID_ADDR_METHOD(err, lineNumber, original_line)
+    return err;
+}
+
 /* Assumes first character is '#'. Returns True if the string is not a legal integer number. */
 bool errors_immediate(char* str) {
     int i = 1;
@@ -202,6 +244,8 @@ bool errors_index(char* str) {
 int is_invalid_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
+
+    printf("%s: str = %s\n", str);
 
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");

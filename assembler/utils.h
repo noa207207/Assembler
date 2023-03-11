@@ -13,6 +13,7 @@ int count_line_length(char*);
 bool empty_string(char*);
 char* skip_word(char*);
 void delete_spaces(char*);
+void delete_new_line(char* p);
 
 int getHist(int);
 int getBase(int);

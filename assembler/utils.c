@@ -92,6 +92,14 @@ void delete_spaces(char* p) {
     p[count] = '\0'; /* End the string. */
 }
 
+void delete_new_line(char* p) {
+    int i = 0, count = 0;
+    bool str_flag = False;
+    printf("p = %s\n", p);
+    if (p[strlen(p) - 1] == '\n')
+        p[strlen(p) - 1] = 0;
+}
+
 /* Returns hist, given a number. */
 int getHist(int value) {
     return value % 16;
