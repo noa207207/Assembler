@@ -25,6 +25,8 @@ void process_file(char* filename)
     free(updated_filename);
     updated_filename = str_with_ext(filename, ".am");
 
+    printf("the size is = %d\n", get_code_size(headPointer));
+
     process_first_pass(headPointer, updated_filename);
 
     print_head_code_bin(headPointer);

@@ -55,22 +55,33 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* l
     char *token, *first_word;
     char label[MAX_LABEL_LENGTH];
     int immediate, additionalWords;
-    line_info instruction = {0}, first_param = {0}, second_param = {0};
-    line_info *first_param_ptr = &first_param, *second_param_ptr = &second_group;
+    line_info_ptr_t instruction, first_param, second_param;
+    //line_info instruction = {0}, first_param = {0}, second_param = {0};
+
+    printf("inst2 = %d\n", inst_count);
     char *tmp, *tmp2;
+
+    instruction = line_info_empty_init();
+    first_param = line_info_empty_init();
+    second_param = line_info_empty_init();
+
+    printf("dayyyy: %s, %s, %s\n", get_dst_label(instruction), get_src_label(instruction), get_jmp_label(instruction));
+
+    line_info_ptr_t first_param_ptr = &first_param, *second_param_ptr = &second_group;
 
     // printf("%s: line = %s, line in num = %d, num_op = %d\n", __func__, line, *line);
 
-    instruction.opcode = op;
+    set_opcode(instruction, op);
     if (opcode_in_group(op, third_group, 2)) {
         
         if (errors_zero_operands_inst(original_line, line, line_num, op)) {
             *errorsFound = True;
             return inst_count;
     }
-        insert_base_instruction(headPtr, instruction.opcode, 0, 0, A, inst_count++);
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, 0, A, inst_count++, 0, 0);
         return inst_count;
     }
+    printf("inst33 = %d\n", inst_count);
 
     if (opcode_in_group(op, second_group, 6)) { /* If the operation requires one operand */
 
@@ -79,14 +90,14 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* l
             return inst_count;
         }
 
-        targetAddr = operandMethod(line, &instruction, True, NULL, NULL);
+        targetAddr = operandMethod(line, instruction, True, NULL, NULL);
 
         if (targetAddr == DIRECT) {
             //TODO: to check if neccasary tp  ckeck label is valid 
             // contain a-z & 1-9
         }
     
-        insert_base_instruction(headPtr, instruction.opcode, 0, targetAddr, A, inst_count++);
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, targetAddr, A, inst_count++, 0, 0);
         inst_count = switch_and_insert(headPtr, &instruction, inst_count, targetAddr, True);
     
         return inst_count;
@@ -94,10 +105,7 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* l
 
     if (opcode_in_group(op, jmp_group, 3)) {
 
-
-        targetAddr = operandMethod(line, &instruction, True, &first_param_ptr, &second_param_ptr);
-
-        printf("target = %d\n", targetAddr);
+        targetAddr = operandMethod(line, instruction, True, &first_param_ptr, &second_param_ptr);
         //  if (error_jmp_group(original_line, line_num)) {
         //     *errorsFound = True;
         //     return inst_count;
@@ -105,28 +113,29 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* l
 
         if (targetAddr != JMP_PARAM)
             return inst_count;
-        insert_base_instruction(headPtr, instruction.opcode, 0, targetAddr, A, inst_count++);
-        insert_direct_instruction(headPtr, instruction.dst_label, 0,  A, inst_count++);
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, targetAddr, A, inst_count++, get_first_param(instruction), get_second_param(instruction));
+        insert_direct_instruction(headPtr, get_dst_label(instruction), 0,  A, inst_count++, True);
 
-        if (instruction.first_param == REG_DIRECT && instruction.second_param == REG_DIRECT) {
-            insert_register_instruction(headPtr, first_param_ptr->src_reg, second_param_ptr->dst_reg, A, inst_count++);
+        
+        if (get_first_param(instruction) == REG_DIRECT && get_second_param(instruction) == REG_DIRECT) {
+            insert_register_instruction(headPtr, get_src_reg(first_param_ptr), get_dst_reg(second_param_ptr), A, inst_count++);
             return inst_count;
         }
         if (first_param_ptr)
-            inst_count = switch_and_insert(headPtr, first_param_ptr, inst_count, instruction.first_param, False);
+            inst_count = switch_and_insert(headPtr, first_param_ptr, inst_count, get_first_param(instruction), False);
         if (second_param_ptr)
-            inst_count = switch_and_insert(headPtr, second_param_ptr, inst_count, instruction.second_param, True);
+            inst_count = switch_and_insert(headPtr, second_param_ptr, inst_count, get_second_param(instruction), True);
 
         return inst_count;
     }
 
     if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */
         token = strtok(line, ",");
-        sourceAddr = operandMethod(token, &instruction, False, NULL, NULL);
+        sourceAddr = operandMethod(token, instruction, False, NULL, NULL);
         first_word = token;
         token = strtok(NULL, ",");
         if (token != NULL)
-        targetAddr = operandMethod(token, &instruction, True, NULL, NULL);
+        targetAddr = operandMethod(token, instruction, True, NULL, NULL);
         if (!is_legal_lba(op, sourceAddr, targetAddr))
             return inst_count;
 
@@ -137,63 +146,19 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char* line, char* l
             return inst_count;
         }
 
-        insert_base_instruction(headPtr, instruction.opcode, sourceAddr, targetAddr, A, inst_count++);
+        insert_base_instruction(headPtr, get_opcode(instruction), sourceAddr, targetAddr, A, inst_count++, 0, 0);
         if (sourceAddr == REG_DIRECT && targetAddr == REG_DIRECT) {
-            insert_register_instruction(headPtr, instruction.src_reg, instruction.dst_reg, A, inst_count++);
+            insert_register_instruction(headPtr, get_src_reg(first_param), get_dst_reg(second_param), A, inst_count++);
             return inst_count;
         }
         //  printf("source = %d\n", (int)sourceAddr);
-        inst_count = switch_and_insert(headPtr, &instruction, inst_count, sourceAddr, False);
-        inst_count = switch_and_insert(headPtr, &instruction, inst_count, targetAddr, True);
+        inst_count = switch_and_insert(headPtr, first_param, inst_count, sourceAddr, False);
+        inst_count = switch_and_insert(headPtr, second_param, inst_count, targetAddr, True);
         return inst_count;
     }
 
     return inst_count;
 }
-
-int switch_and_insert(head_ptr_t arr, line_info *instruction, int inst_count, addr_method address_method, bool is_dst)
-{
-    if (!is_dst) {
-        switch (address_method)
-        {
-            case REG_DIRECT:
-            insert_register_instruction(arr, instruction->src_reg, 0, A, inst_count++);
-            break;
-
-            case IMMEDIATE:
-            insert_immidiate_instruction(arr,instruction->src_imm, A, inst_count++);
-            break;
-
-            case DIRECT:
-            insert_direct_instruction(arr, instruction->src_label, 0, A, inst_count++);
-            break;
-
-        default:
-            break;
-        }
-
-        return inst_count;
-    }
-
-    switch (address_method)
-    {
-        case REG_DIRECT:
-        insert_register_instruction(arr, 0, instruction->dst_reg, A, inst_count++);
-        break;
-            
-        case IMMEDIATE:
-        insert_immidiate_instruction(arr,instruction->dst_imm, A, inst_count++);
-        break;
-
-        case DIRECT:
-        insert_direct_instruction(arr, instruction->dst_label, 0, A, inst_count++);
-        break;
-
-    default:
-        break;
-    }
-}
-
 
 /* Returns True if the line is a comment. Otherwise returns False. */
 bool is_comment(char* line) {
@@ -223,35 +188,40 @@ char* nextNum(char* line) {
 }
 
 /* Checks if an operand is an immediate, it assumes so if first character is '#'. It also updates the line_info pointer. */
-bool isImmediate(char* arg, line_info* instruction, bool isDst) {
+bool isImmediate(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == '#') {
-        if (isDst)
-            instruction->dst_imm = atoi(arg + i);
-        else
-            instruction->src_imm = atoi(arg + i);
-        return True;
+        if (isDst) {
+        set_dst_addr(instruction, IMMEDIATE);
+        set_dst_imm(instruction, atoi(arg + i));
+
+    } else {
+        set_src_addr(instruction, IMMEDIATE);
+        set_src_imm(instruction, atoi(arg + i));
+    }
+    return True;
     }
     printf("here!!\n");
     return False;
 }
 
 /* The function returns True if the operand is of type Direct. It assumes so if it's not a register/index/immediate and does not check errors. It also updates the line_info pointer.*/
-bool isDirect(char* arg, line_info* instruction, bool isDst)
+bool isDirect(char* arg, line_info_ptr_t instruction, bool isDst)
 {
 //    printf("direct, %s\n", arg);
     if (isDst) {
-        instruction->dst_addr = DIRECT;
-        strcpy(instruction->dst_label, arg);
+        set_dst_addr(instruction, DIRECT);
+        set_dst_label(instruction, arg, MAX_LABEL_LENGTH);
+
     } else {
-        instruction->src_addr = DIRECT;
-        strcpy(instruction->src_label, arg);
+        set_src_addr(instruction, DIRECT);
+        set_src_label(instruction, arg, MAX_LABEL_LENGTH);
     }
     printf("direct\n");
     return True;
 }
 
-bool is_jmp_param(char* arg, line_info* instruction, bool isDst, line_info **first_param_info, line_info **second_param_info) {
+bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
     int i, labelLength, reg;
     char *token, *line, *first;
     addr_method first_param, second_param;
@@ -261,45 +231,47 @@ bool is_jmp_param(char* arg, line_info* instruction, bool isDst, line_info **fir
     printf("arg = %s\n", arg);
     if (isImmediate(arg, instruction, isDst) || isRegister(arg, instruction, isDst))
         return False;
-    
     while (arg[i] != '(' && arg[i])
-        i++;
-    printf("i = %d\n", i);
-    printf("%c\n", arg[i]);
-    if (arg[i] == '(') {
-        if (arg[strlen(arg) - 1] != ')')
-            return False;
-        printf("%c\n", arg[i]);
-        labelLength = i;
-        line = arg + labelLength + 1;
-        first = token = strtok(line, ",");
-        printf("first = %s\n", first);
-        first_param = operandMethod(token, *first_param_info, False, NULL, NULL);
-        printf("%s: first_param = %d\n", __func__, (int)first_param);
-        token = strtok(NULL, ")");
-        printf("token = %s\n", token);
-        if (token != NULL)
-            second_param = operandMethod(token, *second_param_info, True, NULL, NULL);
-         printf("%s: sec_param = %d\n", __func__, (int)second_param);
-        // if (first_param == REG_DIRECT && second_param == REG_DIRECT) {
-        //     (*first_param_info)->dst_reg = (*second_param_info)->dst_reg;
-        //     *second_param_info = NULL;
-        // }
+         i++;
+     printf("i = %d\n", i);
+     printf("%c\n", arg[i]);
+     if (arg[i] == '(') {
+         if (arg[strlen(arg) - 1] != ')')
+             return False;
+         printf("%c\n", arg[i]);
+         labelLength = i;
+         line = arg + labelLength + 1;
+         first = token = strtok(line, ",");
+         printf("first = %s\n", first);
+         first_param = operandMethod(token, *first_param_info, False, NULL, NULL);
+         printf("%s: first_param = %d\n", __func__, (int)first_param);
+         token = strtok(NULL, ")");
+         printf("token = %s\n", token);
+         if (token != NULL)
+             second_param = operandMethod(token, *second_param_info, True, NULL, NULL);
+          printf("%s: sec_param = %d\n", __func__, (int)second_param);
 
-        instruction->first_param = first_param;
-        instruction->second_param = second_param;
-    } else {
-        *first_param_info = NULL;
-        *second_param_info = NULL;
-    }
-    instruction->dst_addr = JMP_PARAM;
-    strncpy(instruction->dst_label, arg, i);
+        set_first_param(instruction, first_param);
+        set_second_param(instruction, second_param);
+
+        printf("first p = %d, sec p = %d\n", get_first_param(instruction), get_second_param(instruction));
+
+     } else {
+         *first_param_info = NULL;
+         *second_param_info = NULL;
+     }
+    printf("p = %d\n", get_dst_reg(*second_param_info));
+    printf("p = %d\n", get_src_reg(*first_param_info));
+    set_dst_addr(instruction, JMP_PARAM);
+    set_dst_label(instruction, arg, i);
+    printf("p2 = %d\n", get_dst_reg(*second_param_info));
+    printf("p2 = %d\n", get_src_reg(*first_param_info));
 
     return True;
 }
 
 /* Returns true if correct register, within range 0EMPTY5. It also updates the line_info pointer.*/
-bool isRegister(char* arg, line_info* instruction, bool isDst) {
+bool isRegister(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == 'r') {
         /* Error check? */
@@ -308,12 +280,12 @@ bool isRegister(char* arg, line_info* instruction, bool isDst) {
         if (arg[i + 1] && arg[i + 2])
             return False;
         if (isDst) {
-            instruction->dst_addr = REG_DIRECT;
-            instruction->dst_reg = atoi(arg + i);
+            set_dst_addr(instruction, REG_DIRECT);
+            set_dst_reg(instruction, atoi(arg + i));
             
         } else {
-            instruction->src_addr = REG_DIRECT;
-            instruction->src_reg = atoi(arg + i);
+            set_src_addr(instruction, REG_DIRECT);
+            set_src_reg(instruction, atoi(arg + i));
         }
         arg = arg + 2;
         return True;
@@ -322,7 +294,7 @@ bool isRegister(char* arg, line_info* instruction, bool isDst) {
 }
 
 /* Returns the address method of string arg. Assumes arg is not a NULL pointer. */
-addr_method operandMethod(char* arg, line_info* instruction, bool isDst, line_info **first_param_info, line_info **second_param_info) {
+addr_method operandMethod(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
     //TODO; verify id immidiate / direct/  register?
     printf("%s: arg = %s, pointer = %p\n", __func__, arg, first_param_info);
     if (isRegister(arg, instruction, isDst))

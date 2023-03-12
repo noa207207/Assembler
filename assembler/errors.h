@@ -56,9 +56,9 @@ bool is_duplicate_label(head_ptr_t, char *, int);
 
 bool errors_in_data_line(char *, char *, int, opcode);
 bool errors_zero_operands_inst(char *, char *, int, opcode);
-int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction);
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction);
 int check_one_operand_num(char* str, opcode op);
-int errors_two_operands_inst(char *, char *, char *, char *, int, line_info *);
+int errors_two_operands_inst(char *, char *, char *, char *, int, line_info_ptr_t);
 int check_two_operand_num(char* str, opcode op);
 bool error_jmp_group(char* original_line, int lineNumber);
 

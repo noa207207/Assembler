@@ -1,8 +1,8 @@
-MAIN_FLAG = gcc -g 
+MAIN_FLAG = gcc -g -Wall -ansi -pedantic
 
-OBJ_FLAG = gcc -c 
+OBJ_FLAG = gcc -c -Wall -ansi -pedantic
 
-OBJECTS = assembler.o utils.o pre_assembler.o data_structure.o first_pass.o second_pass.o parse.o errors.o output.o constants.o
+OBJECTS = assembler.o utils.o pre_assembler.o constants.o data_structure.o first_pass.o second_pass.o parse.o errors.o output.o
 
 HEADERS = assembler.h utils.h pre_assembler.h constants.h data_structure.h first_pass.h second_pass.h parse.h errors.h output.h
 
@@ -12,14 +12,14 @@ assembler: $(OBJECTS)
 assembler.o: assembler.c $(HEADERS)
 	$(OBJ_FLAG) assembler.c -o assembler.o
 
+data_structure.o: data_structure.c $(HEADERS)
+	$(OBJ_FLAG) data_structure.c -o data_structure.o
+
 constants.o: constants.c $(HEADERS)
 	$(OBJ_FLAG) constants.c -o constants.o
 
 pre_assembler.o: pre_assembler.c $(HEADERS)
 	$(OBJ_FLAG) pre_assembler.c -o pre_assembler.o
-
-data_structure.o: data_structure.c $(HEADERS)
-	$(OBJ_FLAG) data_structure.c -o data_structure.o
 
 first_pass.o: first_pass.c $(HEADERS)
 	$(OBJ_FLAG) first_pass.c -o first_pass.o
@@ -39,6 +39,8 @@ utils.o: utils.c $(HEADERS)
 output.o: output.c $(HEADERS)
 	$(OBJ_FLAG) output.c -o output.o
 
+debug: $(OBJECTS)
+	$(MAIN_FLAG) $(OBJECTS) -o assembler-debug
+
 clean:
-	rm *.o
-	
+	rm -f *.o

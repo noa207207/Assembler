@@ -117,15 +117,15 @@ bool errors_zero_operands_inst(char* original_line, char* line, int lineNumber, 
 }
 
 /* Returns True if errors found in line with one operand. */
-int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info* instruction) {
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction) {
     /* Only destination matters. REG_DIRECT that is incorrect considered as DIRECT.*/
     int err = 0;
 
-    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line)
+    INVALID_OPERANDS(line, get_opcode(instruction), lineNumber, original_line)
 
     COMMA_END(line, lineNumber, original_line);
 
-    if (instruction->dst_addr == IMMEDIATE) {
+    if (get_dst_addr(instruction) == IMMEDIATE) {
         ERR_IMMEDIATE(line, lineNumber, original_line)
     }
 
@@ -135,24 +135,24 @@ int errors_one_operand_inst(char* original_line, char* line, int lineNumber, lin
 }
 
 /* Returns True if errors found in line with two operands. */
-int errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info* instruction) {
+int errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction) {
     int err = 0;
 
-    INVALID_OPERANDS(line, instruction->opcode, lineNumber, original_line);
+    INVALID_OPERANDS(line, get_opcode(instruction), lineNumber, original_line);
 
     COMMA_END(line, lineNumber, original_line);
     CONSECUTIVE_COMMAS(line, lineNumber, original_line);
 
     /* REG_DIRECT has already been checked. DIRECT will be checked later. */
-    if (instruction->src_addr == IMMEDIATE) {
+    if (get_src_addr(instruction) == IMMEDIATE) {
         ERR_IMMEDIATE(first_word, lineNumber, original_line)
-    } else if (instruction->src_addr == JMP) {
+    } else if (get_src_addr(instruction) == JMP) {
         ERR_INDEX(first_word, lineNumber, original_line)
     }
 
-    if (instruction->dst_addr == IMMEDIATE) {
+    if (get_dst_addr(instruction) == IMMEDIATE) {
         ERR_IMMEDIATE(second_word, lineNumber, original_line)
-    } else if (instruction->dst_addr == JMP) {
+    } else if (get_dst_addr(instruction) == JMP) {
         ERR_INDEX(second_word, lineNumber, original_line)
     }
     INVALID_ADDR_METHOD(err, lineNumber, original_line)
@@ -235,7 +235,7 @@ int is_invalid_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
 
-    printf("%s: str = %s\n", str);
+    printf("%s: str = %s\n", __func__, str);
 
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");
@@ -249,6 +249,7 @@ int is_invalid_operand_num(char* str, opcode op) {
         if ((token = strtok(NULL, ",")) != NULL)
             return 1;
     }
+    printf("done\n");
     return 0;
 }
 

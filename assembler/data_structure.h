@@ -13,6 +13,7 @@ typedef struct image image_t;
 
 
 head_ptr_t head_init(int tableSize, int dataSize, int codeSize);
+int get_code_size(head_ptr_t arr);
 void symbol_init(symbol_ptr_t);
 
 /* Symbol table functions */
@@ -29,9 +30,9 @@ void free_data_image(head_ptr_t);
 
 /* Code image functions */
 void insert_base_instruction(head_ptr_t arr, unsigned int opcode, unsigned int src_addr,
-								unsigned int dst_addr, int attribute, int line);
-void insert_code_instruction(head_ptr_t, line_info*, int);
-void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_address, int attribute, int line);
+								unsigned int dst_addr, int attribute, int line, unsigned int param1, unsigned int param2);
+void insert_code_instruction(head_ptr_t, line_info_ptr_t, int);
+void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_address, int attribute, int line, int is_jmp);
 void insert_register_instruction(head_ptr_t arr, unsigned int src_register, unsigned int dst_register, int attribute, int line);
 void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attribute, int line);
 
