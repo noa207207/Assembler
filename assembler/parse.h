@@ -24,7 +24,7 @@ bool isRegister(char *, line_info_ptr_t, bool);
 bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info);
 
 void updateFunctAndOpcode(opcode, line_info_ptr_t);
-addr_method operandMethod(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info);
+addr_method operandMethod(char* arg, line_info_ptr_t *instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info);
 int howManyWords(addr_method, addr_method);
 bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd);
 

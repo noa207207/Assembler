@@ -16,6 +16,7 @@ bool errors_in_label(head_ptr_t headPtr, char* original_line, char* line, int li
     errors = False;
     i = 0;
     ptr = line;
+    printf("label is %s\n", line);
 
     while (ptr[i] != ':')
         i++;
@@ -25,29 +26,87 @@ bool errors_in_label(head_ptr_t headPtr, char* original_line, char* line, int li
     if (length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
         errors = True;
 
+    // printf("line = %d, error = %d\n", __LINE__, errors);
     for (i = 0; i < length; i++) {
         if (!isalnum(ptr[i]))
             errors = True;
     }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     for (i = 0; i < OPCODE_SIZE; i++) {
         if (strlen(opcode_to_str(i)) == length && !strncmp(line, opcode_to_str(i), length))
             errors = True;
     }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     reg = atoi(ptr + 1);
 
     if (ptr[0] == 'r' && ((reg >= 0 && reg < MAX_REGISTERS && length == strlen("r0"))))
         errors = True;
 
+    // printf("line = %d, error = %d\n", __LINE__, errors);
     if (is_duplicate_label(headPtr, line, length)) {
         printf("Error on line %d: %sDuplicate label name. The name has already been used.\n", lineNumber, original_line);
+        return True;
     }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     if (errors) {
         printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
         return True;
     }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+    return False;
+}
+
+bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line, int lineNumber) {
+    char* ptr;
+    bool errors;
+    int i, length, reg;
+
+    errors = False;
+    i = 0;
+    ptr = line;
+    printf("label is %s\n", line);
+
+    while (ptr[i])
+        i++;
+
+    length = i;
+
+    if (length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
+        errors = True;
+
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+    for (i = 0; i < length; i++) {
+        if (!isalnum(ptr[i]))
+            errors = True;
+    }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+
+    for (i = 0; i < OPCODE_SIZE; i++) {
+        if (strlen(opcode_to_str(i)) == length && !strncmp(line, opcode_to_str(i), length))
+            errors = True;
+    }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+
+    reg = atoi(ptr + 1);
+
+    if (ptr[0] == 'r' && ((reg >= 0 && reg < MAX_REGISTERS && length == strlen("r0"))))
+        errors = True;
+
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+    if (is_duplicate_label(headPtr, line, length)) {
+        printf("Error on line %d: %sDuplicate label name. The name has already been used.\n", lineNumber, original_line);
+        return True;
+    }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
+
+    if (errors) {
+        printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
+        return True;
+    }
+    // printf("line = %d, error = %d\n", __LINE__, errors);
     return False;
 }
 
@@ -130,6 +189,8 @@ int errors_one_operand_inst(char* original_line, char* line, int lineNumber, lin
     }
 
     INVALID_ADDR_METHOD(err, lineNumber, original_line)
+
+    // printf("ERRRR = %d\n", err);
 
     return err;
 }
@@ -235,7 +296,7 @@ int is_invalid_operand_num(char* str, opcode op) {
     char line_copy[MAX_LINE_LENGTH];
     char* token;
 
-    printf("%s: str = %s\n", __func__, str);
+    // printf("%s: str = %s\n", __func__, str);
 
     strcpy(line_copy, str);
     token = strtok(line_copy, ",");
@@ -249,7 +310,7 @@ int is_invalid_operand_num(char* str, opcode op) {
         if ((token = strtok(NULL, ",")) != NULL)
             return 1;
     }
-    printf("done\n");
+    // printf("done\n");
     return 0;
 }
 

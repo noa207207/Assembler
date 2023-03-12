@@ -78,7 +78,7 @@ union binary {
 };
 typedef union binary *binary_ptr_t;
 
-typedef enum {
+typedef enum bool{
     False,
     True
 } bool;
@@ -107,7 +107,7 @@ typedef enum {
     OPCODE_SIZE,
 } opcode;
 
-typedef enum {
+typedef enum addr_method{
     IMMEDIATE,
     DIRECT,
     JMP_PARAM, 
@@ -117,11 +117,11 @@ typedef enum {
     EMPTY
 } addr_method;
 
-enum attributes {
+typedef enum attributes {
     A = 0,
     E = 1,
     R = 3
-};
+}attributes;
 
 enum decodeStatus {
     DONE,
@@ -213,6 +213,9 @@ char* get_jmp_label(line_info_ptr_t line);
 char* get_dst_label(line_info_ptr_t line);
 addr_method get_first_param(line_info_ptr_t line);
 addr_method get_second_param(line_info_ptr_t line);
+char *get_direct_instruction_label(direct_instruction_ptr_t direct_ptr);
+void set_direct_instruction_value(direct_instruction_ptr_t direct_ptr, int value);
+void set_direct_instruction_era(direct_instruction_ptr_t direct_ptr, attributes era);
 
 // Setter functions
 void set_opcode(line_info_ptr_t line, opcode opcode);

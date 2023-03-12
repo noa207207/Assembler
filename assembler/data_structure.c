@@ -54,6 +54,290 @@ head_ptr_t head_init(int tableSize, int dataSize, int codeSize) {
     return tmp;
 }
 
+char *get_direct_label(head_ptr_t h, int idx)
+{
+    return get_direct_instruction_label(h->code_image[idx].bin->direct_ptr);
+}
+
+void set_direct_value(head_ptr_t h, int idx, int value)
+{
+    set_direct_instruction_value(h->code_image[idx].bin->direct_ptr, value);
+}
+
+void set_direct_era(head_ptr_t h, int idx, attributes attr)
+{
+    set_direct_instruction_era(h->code_image[idx].bin->direct_ptr, attr);
+}
+
+// Setter function for the 'table' field
+void set_table(head_ptr_t h, symbol_ptr_t table) {
+    h->table = table;
+}
+
+// Getter function for the 'table' field
+symbol_ptr_t get_table(head_ptr_t h) {
+    return h->table;
+}
+
+// Getter function for the 'data_image' field
+image_ptr_t get_data_image(head_ptr_t h) {
+    return h->data_image;
+}
+
+// Setter function for the 'data_image' field
+void set_data_image(head_ptr_t h, image_ptr_t data_image) {
+    h->data_image = data_image;
+}
+
+// Getter function for the 'code_image' field
+image_ptr_t get_code_image(head_ptr_t h) {
+    return h->code_image;
+}
+
+// Setter function for the 'code_image' field
+void set_code_image(head_ptr_t h, image_ptr_t code_image) {
+    h->code_image = code_image;
+}
+
+// Getter function for the 'tableUsed' field
+int get_table_used(head_ptr_t h) {
+    return h->tableUsed;
+}
+
+// Setter function for the 'tableUsed' field
+void set_table_used(head_ptr_t h, int tableUsed) {
+    h->tableUsed = tableUsed;
+}
+
+// Getter function for the 'tableSize' field
+int get_table_size(head_ptr_t h) {
+    return h->tableSize;
+}
+
+// Setter function for the 'tableSize' field
+void set_table_size(head_ptr_t h, int tableSize) {
+    h->tableSize = tableSize;
+}
+
+// Getter function for the 'dataUsed' field
+int get_data_used(head_ptr_t h) {
+    return h->dataUsed;
+}
+
+// Setter function for the 'dataUsed' field
+void set_data_used(head_ptr_t h, int dataUsed) {
+    h->dataUsed = dataUsed;
+}
+
+// Getter function for the 'dataSize' field
+int get_data_size(head_ptr_t h) {
+    return h->dataSize;
+}
+
+// Setter function for the 'dataSize' field
+void set_data_size(head_ptr_t h, int dataSize) {
+    h->dataSize = dataSize;
+}
+
+// Getter function for the 'codeUsed' field
+int get_code_used(head_ptr_t h) {
+    return h->codeUsed;
+}
+
+// Setter function for the 'codeUsed' field
+void set_code_used(head_ptr_t h, int codeUsed) {
+    h->codeUsed = codeUsed;
+}
+
+// Getter function for the 'codeSize' field
+int get_code_size(head_ptr_t h) {
+    return h->codeSize;
+}
+
+// Setter function for the 'codeSize' field
+void set_code_size(head_ptr_t h, int codeSize) {
+    h->codeSize = codeSize;
+}
+
+/* Getter and Setter for Symbol structure */
+
+// Getter function to access symbol_name field
+char* get_symbol_name(head_ptr_t head, int idx) {
+    return head->table[idx].symbol_name;
+}
+
+// Setter function to update symbol_name field
+void set_symbol_name(head_ptr_t head, int idx, char* name) {
+    strcpy(head->table[idx].symbol_name, name);
+}
+
+// Getter function to access attributes field
+char* get_symbol_attributes(head_ptr_t head, int idx) {
+    return head->table[idx].atrributes;
+}
+
+// Setter function to update attributes field
+void set_symbol_attributes(head_ptr_t head, int idx, char* attributes) {
+    strcpy(head->table[idx].atrributes, attributes);
+}
+
+// Getter function to access value field
+int get_symbol_value(head_ptr_t head, int idx) {
+    return head->table[idx].value;
+}
+
+// Setter function to update value field
+void set_symbol_value(head_ptr_t head, int idx, int value) {
+    head->table[idx].value = value;
+}
+
+// Getter function to access isExternal field
+bool get_symbol_isExternal(head_ptr_t head, int idx) {
+    return head->table[idx].isExternal;
+}
+
+// Setter function to update isExternal field
+void set_symbol_isExternal(head_ptr_t head, int idx, bool isExternal) {
+    head->table[idx].isExternal = isExternal;
+}
+
+// Getter function to access isCode field
+bool get_symbol_isCode(head_ptr_t head, int idx) {
+    return head->table[idx].isCode;
+}
+
+// Setter function to update isCode field
+void set_symbol_isCode(head_ptr_t head, int idx, bool isCode) {
+    head->table[idx].isCode = isCode;
+}
+
+// Getter function to access isData field
+bool get_symbol_isData(head_ptr_t head, int idx) {
+    return head->table[idx].isData;
+}
+
+// Setter function to update isData field
+void set_symbol_isData(head_ptr_t head, int idx, bool isData) {
+    head->table[idx].isData = isData;
+}
+
+// Getter function to access isEntry field
+bool get_symbol_isEntry(head_ptr_t head, int idx) {
+    return head->table[idx].isEntry;
+}
+
+// Setter function to update isEntry field
+void set_symbol_isEntry(head_ptr_t head, int idx, bool isEntry) {
+    head->table[idx].isEntry = isEntry;
+}
+
+
+/* Getter and Setter for Image structure */
+
+// Getter function to access line field
+int get_data_line(head_ptr_t head, int idx) {
+    return head->data_image[idx].line;
+}
+
+// Setter function to update line field
+void set_data_line(head_ptr_t head, int idx, int line) {
+    head->data_image[idx].line = line;
+}
+
+// Getter function to access label field
+char* get_data_label(head_ptr_t head, int idx) {
+    return head->data_image[idx].label;
+}
+
+// Setter function to update label field
+void set_data_label(head_ptr_t head, int idx, char* label) {
+    strcpy(head->data_image[idx].label, label);
+}
+
+// Getter function to access toDecode field
+int get_data_toDecode(head_ptr_t head, int idx) {
+    return head->data_image[idx].toDecode;
+}
+
+// Setter function to update toDecode field
+void set_data_toDecode(head_ptr_t head, int idx, bool toDecode) {
+    head->data_image[idx].toDecode = toDecode;
+}
+
+// Getter function to access isExtern field
+bool get_data_isExtern(head_ptr_t head, int idx) {
+    return head->data_image[idx].isExtern;
+}
+
+// Setter function to update isExtern field
+void set_data_isExtern(head_ptr_t head, int idx, bool isExtern) {
+    head->data_image[idx].isExtern = isExtern;
+}
+
+// Getter function to access type field
+addr_method get_data_type(head_ptr_t head, int idx) {
+    return head->data_image[idx].type;
+}
+
+// Setter function to update type field
+void set_data_type(head_ptr_t head, int idx, addr_method type) {
+    head->data_image[idx].type = type;
+}
+
+/* Getter and Setter for code_image */
+// Getter function to access line field
+int get_code_line(head_ptr_t head, int idx) {
+    return head->code_image[idx].line;
+}
+
+// Setter function to update line field
+void set_code_line(head_ptr_t head, int idx, int line) {
+    head->code_image[idx].line = line;
+}
+
+// Getter function to access label field
+char* get_code_label(head_ptr_t head, int idx) {
+    return head->code_image[idx].label;
+}
+
+// Setter function to update label field
+void set_code_label(head_ptr_t head, int idx, char* label) {
+    strcpy(head->code_image[idx].label, label);
+}
+
+// Getter function to access toDecode field
+int get_code_toDecode(head_ptr_t head, int idx) {
+    return head->code_image[idx].toDecode;
+}
+
+// Setter function to update toDecode field
+void set_code_toDecode(head_ptr_t head, int idx, int toDecode) {
+    head->code_image[idx].toDecode = toDecode;
+}
+
+// Getter function to access isExtern field
+bool get_code_isExtern(head_ptr_t head, int idx) {
+    return head->code_image[idx].isExtern;
+}
+
+// Setter function to update isExtern field
+void set_code_isExtern(head_ptr_t head, int idx, bool isExtern) {
+    head->code_image[idx].isExtern = isExtern;
+}
+
+// Getter function to access type field
+addr_method get_code_type(head_ptr_t head, int idx) {
+    return head->code_image[idx].type;
+}
+
+// Setter function to update type field
+void set_code_type(head_ptr_t head, int idx, addr_method type) {
+    head->code_image[idx].type = type;
+}
+
+
+
+
 /* Initialization of symbol node. */
 void symbol_init(symbol_ptr_t node) {
     node->isExternal = False;
@@ -66,8 +350,12 @@ void symbol_init(symbol_ptr_t node) {
 
 /* Handles insertion into symbol table. */
 void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
-    printf("%s: name = %s, val = %d\n", __func__, name, value);
     int idx = arr->tableUsed;
+
+    // if (is_symbole_exist(arr, name)){
+    //     printf("Label %s is already exist\n", name);
+    // }
+
     if (arr->tableUsed == arr->tableSize) {
         arr->tableSize *= 2;
         arr->table = (symbol_ptr_t)realloc_with_monitor(arr->table, arr->tableSize * sizeof(struct symbol));
@@ -90,9 +378,24 @@ void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
     arr->tableUsed++;
 }
 
+bool is_symbole_exist(head_ptr_t arr, char *label)
+{
+    int size = arr->tableUsed;
+    int i = 0;
+
+    for (i = 0; i < size; i++) {
+        if (!strcmp(arr->table[i].symbol_name, label))
+            return True;
+    }
+    
+    return False;
+
+}
+
 /* Inserts into symbol table when the line is a data line. */
 void insert_data_symbol(head_ptr_t arr, char* name, int value, opcode op) {
-insert_symbol(arr, name, value, op);
+    printf("name = %s\n", name);
+    insert_symbol(arr, name, value, op);
 }
 
 /* Inserts into symbol table when the line is of type .extern. */
@@ -154,40 +457,35 @@ void free_data_image(head_ptr_t arr) {
 /* CODE */
 
 
-int get_code_size(head_ptr_t arr)
-{
-    return arr->codeSize;
-}
-
 int resize_img_arr(head_ptr_t arr)
 {
-    printf("reszie\n");
-    printf("code size = %d\n",arr->codeSize);
+    // printf("reszie\n");
+    // printf("code size = %d\n",arr->codeSize);
      if (arr->codeUsed == arr->codeSize) {
         arr->codeSize += 100;
         arr->code_image = (image_ptr_t)realloc_with_monitor(arr->code_image, arr->codeSize * sizeof(struct image)); /* Add monitor */
     }
-    printf("code size = %d\n",arr->codeSize);
+    // printf("code size = %d\n",arr->codeSize);
 }
 
 /* Handles insertion into code image when given an opcode. */
 void insert_base_instruction(head_ptr_t arr, unsigned int opcode, unsigned int src_addr,
                                 unsigned int dst_addr, int attribute, int line, unsigned int param1, unsigned int param2)
 {
-    printf("the 2 pointer is %p\n", arr);
-    printf("222the size is = %d\n", get_code_size(arr));
+    // printf("the 2 pointer is %p\n", arr);
+    // printf("222the size is = %d\n", get_code_size(arr));
     int idx = arr->codeUsed;
     base_instruction_ptr_t base_inst_ptr = base_instruction_init(param1, param2, opcode, src_addr,dst_addr, attribute); 
     binary_ptr_t bin_ptr = binary_init(BASE, base_inst_ptr);
     resize_img_arr(arr);
-    printf("idx = %d\n", idx);
+    // printf("idx = %d\n", idx);
     arr->code_image[idx].line = line;
     arr->code_image[idx].isExtern = False;
     arr->code_image[idx].bin = bin_ptr;
     arr->code_image[idx].toDecode = DONE;
     arr->codeUsed++;
     arr->code_image[idx].type = BASE;
-    printf("noa\n");
+    // printf("noa\n");
 }
 
 void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attribute, int line)
@@ -203,7 +501,6 @@ void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attr
     arr->code_image[idx].type = IMMEDIATE;
     arr->code_image[idx].bin = bin_ptr;
     arr->code_image[idx].toDecode = DONE;
-    arr->code_image[idx].type = IMMEDIATE;
     arr->codeUsed++;
 }
 

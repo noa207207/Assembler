@@ -48,6 +48,7 @@ struct line_info{
 
     int src_reg;
     int dst_reg;
+    int dst_reg2;
 
     int src_imm;
     int dst_imm;
@@ -60,6 +61,21 @@ struct line_info{
     addr_method second_param;
 
 };
+
+char *get_direct_instruction_label(direct_instruction_ptr_t direct_ptr)
+{
+    return direct_ptr->label;
+}
+
+void set_direct_instruction_value(direct_instruction_ptr_t direct_ptr, int value)
+{
+    direct_ptr->memory_address = value;
+}
+
+void set_direct_instruction_era(direct_instruction_ptr_t direct_ptr, attributes era)
+{
+    direct_ptr->era = era;
+}
 
 // Getters
 opcode get_opcode(line_info_ptr_t line_info_ptr) {
@@ -79,7 +95,7 @@ int get_src_reg(line_info_ptr_t line_info_ptr) {
 }
 
 int get_dst_reg(line_info_ptr_t line_info_ptr) {
-    return line_info_ptr->dst_reg;
+    return line_info_ptr->dst_reg2;
 }
 
 int get_src_imm(line_info_ptr_t line_info_ptr) {
@@ -128,7 +144,7 @@ void set_src_reg(line_info_ptr_t line_info_ptr, int reg) {
 }
 
 void set_dst_reg(line_info_ptr_t line_info_ptr, int reg) {
-    line_info_ptr->dst_reg = reg;
+    line_info_ptr->dst_reg2 = reg;
 }
 
 void set_src_imm(line_info_ptr_t line_info_ptr, int imm) {
@@ -144,17 +160,13 @@ void set_src_label(line_info_ptr_t line_info_ptr, char* label, int size) {
 }
 
 void set_jmp_label(line_info_ptr_t line_info_ptr, char* label, int size) {
-      printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->jmp_label, label);
-
     strncpy(line_info_ptr->jmp_label, label, size);
-          printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->jmp_label, label);
-
 }
 
 void set_dst_label(line_info_ptr_t line_info_ptr, char* label, int size) {
-    printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
+    // //printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
     strncpy(line_info_ptr->dst_label, label, size);
-    printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
+    // //printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
 
 }
 
@@ -259,7 +271,7 @@ line_info_ptr_t line_info_init(opcode opcode_val, addr_method src_addr_val, addr
     tmp->src_addr = src_addr_val;
     tmp->dst_addr = dst_addr_val;
     tmp->src_reg = src_reg_val;
-    tmp->dst_reg = dst_reg_val;
+    tmp->dst_reg2 = dst_reg_val;
     tmp->src_imm = src_imm_val;
     tmp->dst_imm = dst_imm_val;
     strncpy(tmp->src_label, src_label_val, MAX_LABEL_LENGTH);
@@ -270,13 +282,15 @@ line_info_ptr_t line_info_init(opcode opcode_val, addr_method src_addr_val, addr
     return tmp;
 }
 
-line_info_ptr_t line_info_empty_init() {
+line_info_ptr_t line_info_empty_init(void) {
     line_info_ptr_t tmp = (line_info_ptr_t)malloc_with_monitor(sizeof(struct line_info));
+    if (tmp == NULL)
+        printf("null");
     tmp->opcode = 0;
     tmp->src_addr = 0;
     tmp->dst_addr = 0;
     tmp->src_reg = 0;
-    tmp->dst_reg = 0;
+    tmp->dst_reg2 = 0;
     tmp->src_imm = 0;
     tmp->dst_imm = 0;
     memset(tmp->src_label, 0, MAX_LABEL_LENGTH);
@@ -289,7 +303,7 @@ line_info_ptr_t line_info_empty_init() {
 
 void print_base_instruction(base_instruction_ptr_t instr) {
     printf("param_1: %u, param_2: %u, opcode: %u, src_addr: %u, dst_addr: %u, era: %u\n",
-           instr->param_1, instr->param_2, instr->opcode, instr->src_addr, instr->dst_addr, instr->era);
+          instr->param_1, instr->param_2, instr->opcode, instr->src_addr, instr->dst_addr, instr->era);
 }
 
 void print_immidiate_instruction(immidiate_instruction_ptr_t instr) {
@@ -298,12 +312,12 @@ void print_immidiate_instruction(immidiate_instruction_ptr_t instr) {
 
 void print_direct_instruction(direct_instruction_ptr_t instr) {
     printf("memory_address: %u, label: %s, era: %u\n",
-           instr->memory_address, instr->label, instr->era);
+          instr->memory_address, instr->label, instr->era);
 }
 
 void print_register_instruction(register_instruction_ptr_t instr) {
     printf("src_register: %u, dst_register: %u, era: %u\n",
-           instr->src_register, instr->dst_register, instr->era);
+          instr->src_register, instr->dst_register, instr->era);
 }
 
 void print_single_data(single_data_ptr_t data) {
@@ -331,26 +345,27 @@ int switch_and_insert(head_ptr_t arr, line_info_ptr_t instruction, int inst_coun
             break;
         }
 
-        return inst_count;
+    } else {
+            switch (address_method)
+        {
+            case REG_DIRECT:
+            insert_register_instruction(arr, 0, instruction->dst_reg2, A, inst_count++);
+            break;
+                
+            case IMMEDIATE:
+            insert_immidiate_instruction(arr,instruction->dst_imm, A, inst_count++);
+            break;
+
+            case DIRECT:
+            insert_direct_instruction(arr, instruction->dst_label, 0, A, inst_count++, False);
+            break;
+
+        default:
+            break;
+        }
     }
 
-    switch (address_method)
-    {
-        case REG_DIRECT:
-        insert_register_instruction(arr, 0, instruction->dst_reg, A, inst_count++);
-        break;
-            
-        case IMMEDIATE:
-        insert_immidiate_instruction(arr,instruction->dst_imm, A, inst_count++);
-        break;
-
-        case DIRECT:
-        insert_direct_instruction(arr, instruction->dst_label, 0, A, inst_count++, False);
-        break;
-
-    default:
-        break;
-    }
+    return inst_count;
 }
 
 
@@ -408,10 +423,15 @@ char *opcode_to_str(opcode op)
 
     bool opcode_in_group(opcode op, opcode group[], int count)
     {
+      //printf("noa opcode = %d\n",op);
 		int i;
 		for (i = 0; i < count; i++) {
-			if (op == group[i])
-				return True;
+      //printf("greuo[i] = %d\n", group[i]);
+			if (op == group[i]){
+        //printf("yes!!!");
+        return True;
+      }
+				
 		}
 		return False;
     }

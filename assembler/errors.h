@@ -52,6 +52,7 @@
     }
 
 bool errors_in_label(head_ptr_t, char *, char *, int);
+bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line, int lineNumber);
 bool is_duplicate_label(head_ptr_t, char *, int);
 
 bool errors_in_data_line(char *, char *, int, opcode);

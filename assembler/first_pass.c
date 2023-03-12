@@ -25,6 +25,9 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
     filePointer = fopen(filename, "r");
 
     while (fgets(line, MAX_LINE_LENGTH, filePointer)) {
+        printf("line = %s\n", line);
+        errorsFound = False;
+        isLabel = False;
         line_num++;
         if (empty_string(line) || is_comment(line))
             continue;
@@ -38,7 +41,11 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
 
         if ((shift = label_check(wordPointer, label)) != -1) {
             isLabel = True;
-            errorsFound += (errors_in_label(headPtr, original_line, wordPointer, line_num));
+            errorsFound = (errors_in_label(headPtr, original_line, wordPointer, line_num));
+            printf("errorsFound = %d\n", errorsFound);
+            if (errorsFound)
+                continue;
+            // printf("err found = %d\n", (int)errorsFound);
             wordPointer += shift;
             wordPointer = skip_spaces(wordPointer);
         }
@@ -52,23 +59,29 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
         if (op == ENTRY) /* Second Pass deals with this case. */
             continue;
         if (op == DATA || op == STRING) {
-            printf("op = %d\n", (int)op);
-            printf("label = %s\n", label);
+            // printf("op = %d\n", (int)op);
+            // printf("label = %s\n", label);
             if (isLabel) {
-                printf("is label\n");
+                // printf("is label\n");
                 insert_data_symbol(headPtr, label, data_count, op);
             }
 
             isLabel = False;
+            // printf("worddddd = %s\n", wordPointer);
             errorsFound = (errors_in_data_line(original_line, wordPointer, line_num, op)) ? True : errorsFound;
 
             if (!errorsFound)
                 data_count = parse_data_line(headPtr, wordPointer, data_count, op);
-                printf("data count = %d\n", data_count);
+                // printf("data count = %d\n", data_count);
+            // printf("worddddd = %s\n", wordPointer);
             continue;
         }
         if (op == EXTERNAL) {
             /* Error detection done during second pass. */
+            errorsFound = (errors_in_extern_label(headPtr, original_line, wordPointer, line_num));
+            printf("errorsFound = %d\n", errorsFound);
+            if (errorsFound)
+                continue;
             insert_extern(headPtr, wordPointer, op);
             isLabel = False;
             continue;
@@ -86,7 +99,7 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
         // printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
         //     __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
         inst_count = parse_inst_line(headPtr, original_line, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
-        printf("inst count  = %d\n", inst_count);
+        // printf("inst count  = %d\n", inst_count);
     }
     fclose(filePointer);
 
