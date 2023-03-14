@@ -190,5 +190,6 @@ unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst);
 unsigned int direct_to_binary(direct_instruction_ptr_t inst);
 unsigned int register_to_binary(register_instruction_ptr_t inst);
 void binary_to_pattern(unsigned int binary, char* pattern);
+unsigned int get_direct_instruction_value(direct_instruction_ptr_t direct_ptr);
 
 #endif

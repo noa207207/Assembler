@@ -117,7 +117,7 @@ bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line,
 }
 
 /* Returns True if there are errors in a data line, where line points to first element after ".string"/".data". */
-bool errors_in_data_line(char* original_line, char* line, int lineNumber, opcode op) {
+bool errors_in_data_line(char* original_line, char* line, int lineNumber, int op) {
     char *ptr, *token;
     char line_copy[MAX_LINE_LENGTH];
     bool errors;
@@ -362,12 +362,6 @@ int check_two_operand_num(char* str, opcode op) {
     return 0;
 }
 
-/* Returns True if the combination of operands received is illegal. */
-bool illegal_two_operands(addr_method src, addr_method dst, opcode code) {
-    if (((src == IMMEDIATE || src == REG_DIRECT) && code == LEA_OP) || (dst == IMMEDIATE && code != CMP_OP))
-        return True;
-    return False;
-}
 /* Checks if a string is a correct number - starts with '+' or '-' followed by digits or all digits. */
 bool isCorrectNum(char* str) {
     int i, length;

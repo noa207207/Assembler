@@ -119,8 +119,11 @@ bool update_code_symbols(head_ptr_t headPtr) {
                 else
                     errors = True; 
                 is_extern = find_symbol_is_extern(headPtr, label);
-                if(is_extern)
+                if(is_extern){
                     set_direct_era(headPtr, i, E);
+                    set_code_isExtern(headPtr, i, True);
+                }
+                    
                 else
                     set_direct_era(headPtr, i, R);
         }

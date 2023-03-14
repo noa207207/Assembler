@@ -72,7 +72,7 @@ bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line,
 bool is_duplicate_label(head_ptr_t, char *, int);
 int count_parameters(char *str);
 
-bool errors_in_data_line(char *, char *, int, opcode);
+bool errors_in_data_line(char *, char *, int, int opcode);
 bool errors_zero_operands_inst(char *, char *, int, opcode);
 int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
 int check_one_operand_num(char* str, opcode op);
@@ -86,7 +86,6 @@ bool errors_index(char *);
 int is_invalid_operand_num(char *, opcode);
 bool is_one_operand_num(char* str, opcode op);
 bool is_two_operand_num(char* str, opcode op);
-bool illegal_two_operands(addr_method, addr_method, opcode);
 
 bool isCorrectNum(char *);
 bool isConsecutiveComma(char *);

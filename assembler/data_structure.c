@@ -82,7 +82,7 @@ void data_to_binary(image_ptr_t img, int num_data_lines, char** binary_str)
     memset(*binary_str, 0, (num_data_lines * 22) + 1); // initialize binary_str with null bytes
 
      for (i = 0; i < num_data_lines; i++) {
-        sprintf(line_num, "%04d  ", get_image_line(img, i));
+        sprintf(line_num, "%04d\t\t", get_image_line(img, i));
         strcat(*binary_str, line_num);
         binary_to_pattern(get_single_data_value(img, i), pattern);
         strcat(*binary_str, pattern);
@@ -162,6 +162,11 @@ void *get_bin_by_type(image_ptr_t img)
     default:
         break;
     }
+}
+
+int get_direct_value(head_ptr_t h, int idx)
+{
+    return get_direct_instruction_value(h->code_image[idx].bin->direct_ptr);
 }
 
 char *get_direct_label(head_ptr_t h, int idx)
@@ -468,9 +473,13 @@ void symbol_init(symbol_ptr_t node) {
 
 /* SYMBOLS */
 
-/* Handles insertion into symbol table. */
-void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
+void tmp_insert(head_ptr_t arr, char* name, int value, int op)
+{
+    printf("bla\n");
     int idx = arr->tableUsed;
+    if (is_symbole_exist(arr, name)){
+         printf("Label %s is already exist\n", name);
+    }
 
     if (arr->tableUsed == arr->tableSize) {
         arr->tableSize *= 2;
@@ -479,6 +488,29 @@ void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
 
     strcpy(arr->table[idx].symbol_name, name);
     arr->table[idx].value = value;
+
+    printf("name = %s, val = %d\n", name, value);
+
+}
+
+/* Handles insertion into symbol table. */
+void insert_symbol(head_ptr_t arr, char* name, int value, int op) {
+    
+    int idx = arr->tableUsed;
+
+    if (is_symbole_exist(arr, name)){
+         printf("Label %s is already exist\n", name);
+    }
+
+    if (arr->tableUsed == arr->tableSize) {
+        arr->tableSize *= 2;
+        arr->table = (symbol_ptr_t)realloc_with_monitor(arr->table, arr->tableSize * sizeof(struct symbol));
+    }
+
+    strcpy(arr->table[idx].symbol_name, name);
+    arr->table[idx].value = value;
+
+    // printf("name = %s, val = %s\n", name, value);
 
     symbol_init(arr->table + idx);
 
@@ -509,19 +541,19 @@ bool is_symbole_exist(head_ptr_t arr, char *label)
 }
 
 /* Inserts into symbol table when the line is a data line. */
-void insert_data_symbol(head_ptr_t arr, char* name, int value, opcode op) {
+void insert_data_symbol(head_ptr_t arr, char* name, int value, int op) {
     insert_symbol(arr, name, value, op);
 }
 
 /* Inserts into symbol table when the line is of type .extern. */
-void insert_extern(head_ptr_t arr, char* line, opcode op) {
+void insert_extern(head_ptr_t arr, char* line, int op) {
 
     delete_spaces(line);
     insert_symbol(arr, line, 0, op);
 }
 
 /* Inserts into symbol table when dealing with an instruction line. */
-void insert_code_symbol(head_ptr_t arr, char* name, int value, opcode op) {
+void insert_code_symbol(head_ptr_t arr, char* name, int value, int op) {
     insert_symbol(arr, name, value, op);
 }
 
@@ -591,7 +623,7 @@ void insert_base_instruction(head_ptr_t arr, unsigned int opcode, unsigned int s
     arr->code_image[idx].line = line;
     arr->code_image[idx].isExtern = False;
     arr->code_image[idx].bin = bin_ptr;
-    arr->code_image[idx].toDecode = DONE;
+    arr->code_image[idx].toDecode = 0;
     arr->codeUsed++;
     arr->code_image[idx].type = BASE;
 }
@@ -608,7 +640,7 @@ void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attr
     arr->code_image[idx].isExtern = False;
     arr->code_image[idx].type = IMMEDIATE;
     arr->code_image[idx].bin = bin_ptr;
-    arr->code_image[idx].toDecode = DONE;
+    arr->code_image[idx].toDecode = 0;
     arr->codeUsed++;
 }
 
@@ -690,7 +722,7 @@ void print_head_code_bin(head_ptr_t arr)
     int size = arr->codeUsed;
     int i;
 
-    printf("Code Bin\n");
+    printf("Code Bin size = %d\n", size);
     for (i = 0; i < size; i++)
     {
         printf("[%d]: line = %d, is_extern = %d, to_decode = %d ", i, arr->code_image[i].line,

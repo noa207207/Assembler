@@ -21,6 +21,7 @@ void create_output(head_ptr_t headPtr, char* filename) {
     create_object(headPtr, objectFile);
 
     create_entry(headPtr, entryFile);
+    printf("blettt");
 
     create_external(headPtr, externalFile);
 
@@ -67,7 +68,7 @@ void create_entry(head_ptr_t headPtr, char* entryFile) {
     for (idx = 0; idx < tableLength; idx++) {
         if (get_symbol_isEntry(headPtr, idx)) {
             isEmpty = False;
-            fprintf(filePointer, "%s, %04d\n", get_symbol_name(headPtr, idx), get_symbol_value(headPtr, idx));
+            fprintf(filePointer, "%s\t\t%d\n", get_symbol_name(headPtr, idx), get_symbol_value(headPtr, idx));
         }
     }
     fclose(filePointer);
@@ -82,6 +83,7 @@ void create_external(head_ptr_t headPtr, char* externalFile) {
     bool isEmpty;
 
     codeLength = get_code_used(headPtr);
+    printf("len = %d\n", codeLength);
     isEmpty = True;
 
     FILE_CREATE(filePointer, externalFile)
@@ -89,7 +91,7 @@ void create_external(head_ptr_t headPtr, char* externalFile) {
     for (idx = 0; idx < codeLength; idx++) {
         if (get_code_isExtern(headPtr, idx)) {
             isEmpty = False;
-            fprintf(filePointer, "%s %04d\n", get_code_label(headPtr, idx), get_code_line(headPtr, idx));
+            fprintf(filePointer, "%s\t\t%d\n", get_direct_label(headPtr, idx), get_code_line(headPtr, idx));
         }
     }
 

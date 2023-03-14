@@ -93,7 +93,6 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
             INVALID_ADDR_METHOD(op, 0, targetAddr, line_num, original_line);
             return inst_count;
         }
-
             
         if (targetAddr == JMP_PARAM) {
                 if (errors_jmp_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
@@ -123,7 +122,7 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
         return inst_count;
     }
 
-    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */
+    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */        
         token = strtok(line, ",");
         sourceAddr = operandMethod(token, &instruction, False, NULL, NULL);
         first_word = token;

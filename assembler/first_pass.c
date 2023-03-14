@@ -99,10 +99,9 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
             continue;
         }
 
-        inst_count = parse_inst_line(headPtr, original_line, wordPointer_cpy, wordPointer, 
-            line_copy, inst_count, op, &errorsFound, line_num);
+        inst_count = parse_inst_line(headPtr, original_line, wordPointer_cpy, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
         if (isLabel && inst_count > prev_inst_count)
-            insert_code_symbol(headPtr, label, prev_inst_count, op);
+            insert_code_symbol(headPtr, label, prev_inst_count, (int)op);
     }
     fclose(filePointer);
 

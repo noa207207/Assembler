@@ -12,10 +12,10 @@ assembler: $(OBJECTS)
 assembler.o: assembler.c $(HEADERS)
 	$(OBJ_FLAG) assembler.c -o assembler.o
 
-constants.o: constants.c data_structure.h constants.h $(HEADERS)
+constants.o: constants.c $(HEADERS)
 	$(OBJ_FLAG) constants.c -o constants.o
 
-data_structure.o: data_structure.c constants.h data_structure.h $(HEADERS)
+data_structure.o: data_structure.c $(HEADERS)
 	$(OBJ_FLAG) data_structure.c -o data_structure.o
 
 pre_assembler.o: pre_assembler.c $(HEADERS)

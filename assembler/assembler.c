@@ -30,7 +30,7 @@ void process_file(char* filename)
 
     char *s;
 
-     print_head_code_bin(headPointer);
+    print_head_code_bin(headPointer);
 
     create_output(headPointer, filename);
     instructions_to_binary(get_code_image(headPointer), get_code_used(headPointer), &s);
@@ -43,7 +43,6 @@ void process_file(char* filename)
 int main()
 {
     char* filename = "prog";
-    printf("dsdsd");
 
     process_file(filename);
 

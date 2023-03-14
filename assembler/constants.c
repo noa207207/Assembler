@@ -116,6 +116,11 @@ char *get_direct_instruction_label(direct_instruction_ptr_t direct_ptr)
     return direct_ptr->label;
 }
 
+unsigned int get_direct_instruction_value(direct_instruction_ptr_t direct_ptr)
+{
+    return direct_ptr->memory_address;
+}
+
 void set_direct_instruction_value(direct_instruction_ptr_t direct_ptr, int value)
 {
     direct_ptr->memory_address = value;
@@ -482,4 +487,3 @@ char *opcode_to_str(opcode op)
 		}
 		return False;
     }
-

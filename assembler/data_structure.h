@@ -82,10 +82,11 @@ void set_code_type(head_ptr_t head, int idx, addr_method type);
 void symbol_init(symbol_ptr_t);
 
 /* Symbol table functions */
-void insert_symbol(head_ptr_t arr, char* name, int value, opcode);
-void insert_data_symbol(head_ptr_t arr, char* name, int value, opcode);
-void insert_extern(head_ptr_t arr, char* line, opcode);
-void insert_code_symbol(head_ptr_t, char*, int, opcode);
+void tmp_insert(head_ptr_t arr, char* name, int value, int op);
+void insert_symbol(head_ptr_t arr, char* name, int value, int op);
+void insert_data_symbol(head_ptr_t arr, char* name, int value, int op);
+void insert_extern(head_ptr_t arr, char* line, int op);
+void insert_code_symbol(head_ptr_t arr, char* name, int value, int op);
 void free_symbol_table(head_ptr_t arr);
 
 /* Data image functions */
@@ -108,6 +109,7 @@ void free_head(head_ptr_t);
 
 int get_attribute(head_ptr_t, char*);
 bool is_symbole_exist(head_ptr_t arr, char *label);
+int get_direct_value(head_ptr_t h, int idx);
 
 void print_head_code_bin(head_ptr_t arr);
 void print_symbols(head_ptr_t arr);

@@ -17,8 +17,7 @@ extern opcode third_group[2];
 extern opcode jmp_group[3];
 
 int parse_data_line(head_ptr_t, char *, int, opcode);
-int parse_inst_line(head_ptr_t, char *,  char *wordPointer_cpy, char *, char *, int, opcode, bool *, int);
-
+int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_cpy, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num);
 bool is_comment(char *);
 int getArrayLength(char *);
 char *nextNum(char *);
