@@ -11,8 +11,13 @@ enum addiotonal_words { ZERO_WORDS,
                         THREE_WORDS,
                         FOUR_WORDS };
 
+extern opcode first_group[5];
+extern opcode second_group[6];
+extern opcode third_group[2];
+extern opcode jmp_group[3];
+
 int parse_data_line(head_ptr_t, char *, int, opcode);
-int parse_inst_line(head_ptr_t, char *, char *, char *, int, opcode, bool *, int);
+int parse_inst_line(head_ptr_t, char *,  char *wordPointer_cpy, char *, char *, int, opcode, bool *, int);
 
 bool is_comment(char *);
 int getArrayLength(char *);

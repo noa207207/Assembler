@@ -15,6 +15,7 @@
 /* The function is in charge of the second pass. It returns False if no errors were found, and updates the headPointer accordingly. */
 bool process_second_pass(head_ptr_t headPtr, char* filename) {
     char line[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
+    char wordPointer_cpy[MAX_LABEL_LENGTH];
     int line_num, shift;
     char* wordPointer;
     FILE* filePointer;
@@ -26,6 +27,18 @@ bool process_second_pass(head_ptr_t headPtr, char* filename) {
     filePointer = fopen(filename, "r");
 
     while (fgets(line, MAX_LINE_LENGTH, filePointer)) {
+        if (line[strlen(line) - 1] != '\n' && line[strlen(line)] != EOF) {
+            int c;
+            while ((c = fgetc(filePointer)) != '\n' && c != EOF) {}
+        
+            if (c == EOF) {
+                // End-of-file reached while discarding characters
+                break;
+            }
+            line_num++;
+            continue;
+        }
+        errorsFound = False;
         line_num++;
         if (empty_string(line) || is_comment(line))
             continue;
@@ -43,11 +56,16 @@ bool process_second_pass(head_ptr_t headPtr, char* filename) {
         if (op != ENTRY)
             continue;
 
-        // printf("is entry\n");
         wordPointer = skip_word(wordPointer);
+        wordPointer = skip_spaces(wordPointer);
+        strcpy(wordPointer_cpy, wordPointer);
+        delete_new_line(wordPointer_cpy);
         delete_spaces(wordPointer);
 
-        errorsFound = (insert_entry(headPtr, wordPointer, original_line, line_num)) ? errorsFound : True;
+        errorsFound = (err_label(headPtr, original_line, strlen(wordPointer_cpy), wordPointer_cpy, line_num, True));
+
+        if (!errorsFound)
+            errorsFound = (insert_entry(headPtr, wordPointer, original_line, line_num)) ? errorsFound : True;
     }
     fclose(filePointer);
 
@@ -63,8 +81,6 @@ bool insert_entry(head_ptr_t headPtr, char* label, char* line, int lineNumber) {
 
     insertedFlag = False;
     arrLength = get_table_used(headPtr);
-
-    // printf("line number = %d\n", lineNumber);
 
     for (idx = 0; idx < arrLength; idx++) {
         if (!strcmp(get_symbol_name(headPtr,idx), label)) {
@@ -95,7 +111,7 @@ bool update_code_symbols(head_ptr_t headPtr) {
 
     for (i = 0; i < length; i++) {
         label = get_direct_label(headPtr, i);
-        if (get_code_type(headPtr, i) == DIRECT) {
+        if (get_code_toDecode(headPtr, i)) {
                 value = find_symbol_value(headPtr, label);
                 if (value != -1) {
                     set_direct_value(headPtr, i, value);
@@ -103,7 +119,6 @@ bool update_code_symbols(head_ptr_t headPtr) {
                 else
                     errors = True; 
                 is_extern = find_symbol_is_extern(headPtr, label);
-                printf("is extern = %d\n", is_extern);
                 if(is_extern)
                     set_direct_era(headPtr, i, E);
                 else

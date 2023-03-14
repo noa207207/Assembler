@@ -50,8 +50,118 @@ head_ptr_t head_init(int tableSize, int dataSize, int codeSize) {
     tmp->tableSize = tableSize;
     tmp->dataSize = dataSize;
     tmp->codeSize = codeSize;
-    printf("code codeSize = %d\n", tmp->codeSize);
     return tmp;
+}
+
+void print_binary(unsigned int num) {
+    int i;
+    for (i = 13; i >= 0; i--) {
+        if (num & (1 << i)) {
+            printf("1");
+        } else {
+            printf("0");
+        }
+    }
+    printf("\n");
+}
+
+char* format_integer(int n) {
+    // Create a char array with space for 5 characters
+    char* str = (char*) malloc(5 * sizeof(char));
+    sprintf(str, "%04d", n);
+    return str;
+}
+
+void data_to_binary(image_ptr_t img, int num_data_lines, char** binary_str)
+{
+    int i;
+    char line_num[7];
+    char pattern[15];
+
+    *binary_str = malloc((num_data_lines * 22) + 1);
+    memset(*binary_str, 0, (num_data_lines * 22) + 1); // initialize binary_str with null bytes
+
+     for (i = 0; i < num_data_lines; i++) {
+        sprintf(line_num, "%04d  ", get_image_line(img, i));
+        strcat(*binary_str, line_num);
+        binary_to_pattern(get_single_data_value(img, i), pattern);
+        strcat(*binary_str, pattern);
+        strcat(*binary_str, "\n");
+     }
+}
+
+void instructions_to_binary(image_ptr_t img, int num_instructions, char** binary_str) {
+    base_instruction_ptr_t base_inst;
+    immidiate_instruction_ptr_t imm_inst;
+    direct_instruction_ptr_t dir_inst;
+    register_instruction_ptr_t reg_inst;
+    unsigned int binary;
+    char pattern[15];
+    char line_num[7];
+
+    *binary_str = malloc((num_instructions * 22) + 1);
+    memset(*binary_str, 0, (num_instructions * 22) + 1); // initialize binary_str with null bytes
+    for (int i = 0; i < num_instructions; i++) {
+        sprintf(line_num, "%04d  ", get_image_line(img, i));
+        strcat(*binary_str, line_num);
+        switch (img[i].type) {
+            case BASE:
+                base_inst = (base_instruction_ptr_t) img[i].bin->immidiate_ptr;
+                binary = base_to_binary(base_inst);
+                binary_to_pattern(binary, pattern);
+                strcat(*binary_str, pattern);
+                break;
+            case IMMEDIATE:
+                imm_inst = (immidiate_instruction_ptr_t) img[i].bin->immidiate_ptr;
+                binary = immidiate_to_binary(imm_inst);
+                binary_to_pattern(binary, pattern);
+                strcat(*binary_str, pattern);
+                break;
+            case DIRECT:
+            case JMP_PARAM:
+                dir_inst = (direct_instruction_ptr_t) img[i].bin->direct_ptr;
+                binary = direct_to_binary(dir_inst);
+                binary_to_pattern(binary, pattern);
+                strcat(*binary_str, pattern);
+                break;
+            case REG_DIRECT:
+                reg_inst = (register_instruction_ptr_t) img[i].bin->register_ptr;
+                binary = register_to_binary(reg_inst);
+                binary_to_pattern(binary, pattern);
+                strcat(*binary_str, pattern);
+                break;
+            default:
+                // do nothing
+                break;
+        }
+        strcat(*binary_str, "\n");
+    }
+}
+
+
+void *get_bin_by_type(image_ptr_t img)
+{
+    switch (img->type)
+    {
+    case BASE:
+        return img->bin->base_ptr;
+        break;
+    case IMMEDIATE:
+        return img->bin->immidiate_ptr;
+        break;
+    case DIRECT:
+    case JMP_PARAM:
+        return img->bin->direct_ptr;
+        break;
+    case REG_DIRECT:
+        return img->bin->register_ptr;
+        break;
+    case SYNGEL_DATA:
+        return img->bin->data_ptr;
+    
+    default:
+        break;
+    }
 }
 
 char *get_direct_label(head_ptr_t h, int idx)
@@ -335,6 +445,16 @@ void set_code_type(head_ptr_t head, int idx, addr_method type) {
     head->code_image[idx].type = type;
 }
 
+int get_image_line(image_ptr_t img, int idx)
+{
+    return img[idx].line;
+}
+
+int get_single_data_value(image_ptr_t img, int idx)
+{
+    return get_data_value(get_bin_by_type(&img[idx]));
+}
+
 
 
 
@@ -351,10 +471,6 @@ void symbol_init(symbol_ptr_t node) {
 /* Handles insertion into symbol table. */
 void insert_symbol(head_ptr_t arr, char* name, int value, opcode op) {
     int idx = arr->tableUsed;
-
-    // if (is_symbole_exist(arr, name)){
-    //     printf("Label %s is already exist\n", name);
-    // }
 
     if (arr->tableUsed == arr->tableSize) {
         arr->tableSize *= 2;
@@ -394,7 +510,6 @@ bool is_symbole_exist(head_ptr_t arr, char *label)
 
 /* Inserts into symbol table when the line is a data line. */
 void insert_data_symbol(head_ptr_t arr, char* name, int value, opcode op) {
-    printf("name = %s\n", name);
     insert_symbol(arr, name, value, op);
 }
 
@@ -459,33 +574,26 @@ void free_data_image(head_ptr_t arr) {
 
 int resize_img_arr(head_ptr_t arr)
 {
-    // printf("reszie\n");
-    // printf("code size = %d\n",arr->codeSize);
      if (arr->codeUsed == arr->codeSize) {
         arr->codeSize += 100;
         arr->code_image = (image_ptr_t)realloc_with_monitor(arr->code_image, arr->codeSize * sizeof(struct image)); /* Add monitor */
     }
-    // printf("code size = %d\n",arr->codeSize);
 }
 
 /* Handles insertion into code image when given an opcode. */
 void insert_base_instruction(head_ptr_t arr, unsigned int opcode, unsigned int src_addr,
                                 unsigned int dst_addr, int attribute, int line, unsigned int param1, unsigned int param2)
 {
-    // printf("the 2 pointer is %p\n", arr);
-    // printf("222the size is = %d\n", get_code_size(arr));
     int idx = arr->codeUsed;
     base_instruction_ptr_t base_inst_ptr = base_instruction_init(param1, param2, opcode, src_addr,dst_addr, attribute); 
     binary_ptr_t bin_ptr = binary_init(BASE, base_inst_ptr);
     resize_img_arr(arr);
-    // printf("idx = %d\n", idx);
     arr->code_image[idx].line = line;
     arr->code_image[idx].isExtern = False;
     arr->code_image[idx].bin = bin_ptr;
     arr->code_image[idx].toDecode = DONE;
     arr->codeUsed++;
     arr->code_image[idx].type = BASE;
-    // printf("noa\n");
 }
 
 void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attribute, int line)
@@ -504,7 +612,7 @@ void insert_immidiate_instruction(head_ptr_t arr, unsigned int operand, int attr
     arr->codeUsed++;
 }
 
-void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_address, int attribute, int line, int is_jmp)
+void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_address, int attribute, int line, addr_method method)
 {
     int idx = arr->codeUsed;
     direct_instruction_ptr_t direct_inst_ptr = direct_instruction_init(mem_address, label, attribute);
@@ -515,7 +623,7 @@ void insert_direct_instruction(head_ptr_t arr, char *label, unsigned int mem_add
     arr->code_image[idx].isExtern = False;
     arr->code_image[idx].bin = bin_ptr;
     arr->code_image[idx].toDecode = 1;
-    arr->code_image[idx].type = is_jmp? JMP_PARAM : DIRECT;
+    arr->code_image[idx].type = method;
     arr->codeUsed++;
 }
 
@@ -582,7 +690,7 @@ void print_head_code_bin(head_ptr_t arr)
     int size = arr->codeUsed;
     int i;
 
-    printf("code bin\n");
+    printf("Code Bin\n");
     for (i = 0; i < size; i++)
     {
         printf("[%d]: line = %d, is_extern = %d, to_decode = %d ", i, arr->code_image[i].line,

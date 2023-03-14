@@ -62,6 +62,55 @@ struct line_info{
 
 };
 
+unsigned int base_to_binary(base_instruction_ptr_t inst) {
+    unsigned int binary = 0;
+    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    binary |= (inst->dst_addr & 0x3) << 2; // set bits 2-3 to dst_addr[2-3]
+    binary |= (inst->src_addr & 0x3) << 4; // set bits 4-5 to src_addr[4-5]
+    binary |= (inst->opcode & 0xF) << 6; // set bits 6-9 to opcode[6-9]
+    binary |= (inst->param_2 & 0x3) << 10; // set bits 10-11 to param2[10-11]
+    binary |= (inst->param_1 & 0x3) << 12; // set bits 12-13 to param1[12-13]
+    return binary;
+}
+
+unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst) {
+    unsigned int binary = 0;
+    binary |= (inst->operand & 0xFFF) << 2; // set bits 2-13 to operand[2-13]
+    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    return binary;
+}
+
+unsigned int direct_to_binary(direct_instruction_ptr_t inst) {
+    unsigned int binary = 0;
+    binary |= (inst->memory_address & 0xFFF) << 2; // set bits 2-12 to memory_address[2-12]
+    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    return binary;
+}
+
+unsigned int register_to_binary(register_instruction_ptr_t inst) {
+    unsigned int binary = 0;
+    binary |= (inst->src_register & 0x3F) << 8; // set bits 8-13 to src_register[8-13]
+    binary |= (inst->dst_register & 0x3F) << 2; // set bits 2-7 to dst_register[2-7]
+    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    return binary;
+}
+
+void binary_to_pattern(unsigned int binary, char* pattern) {
+    // initialize pattern with 14 '.' characters
+    memset(pattern, '.', 14);
+    pattern[14] = '\0'; // null-terminate the string
+
+    // convert binary to a 14-bit binary string
+    char binary_str[15];
+    binary_str[14] = '\0'; // null-terminate the string
+    for (int i = 0; i < 14; i++) {
+        binary_str[i] = ((binary >> (13 - i)) & 0x1) ? '/' : '.';
+    }
+
+    // copy the 14-bit binary string to the pattern string
+    strncpy(pattern, binary_str, 14);
+}
+
 char *get_direct_instruction_label(direct_instruction_ptr_t direct_ptr)
 {
     return direct_ptr->label;
@@ -164,10 +213,7 @@ void set_jmp_label(line_info_ptr_t line_info_ptr, char* label, int size) {
 }
 
 void set_dst_label(line_info_ptr_t line_info_ptr, char* label, int size) {
-    // //printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
     strncpy(line_info_ptr->dst_label, label, size);
-    // //printf("size = %d, pointer = %s, arg = %s\n", size, line_info_ptr->dst_label, label);
-
 }
 
 void set_first_param(line_info_ptr_t line_info_ptr, addr_method addr) {
@@ -178,6 +224,10 @@ void set_second_param(line_info_ptr_t line_info_ptr, addr_method addr) {
     line_info_ptr->second_param = addr;
 }
 
+int get_data_value(single_data_ptr_t data)
+{
+    return data->value;
+}
 
 base_instruction_ptr_t base_instruction_init(unsigned int param_1, unsigned int param_2, unsigned int opcode, unsigned int src_addr, unsigned int dst_addr, unsigned int era) {
     base_instruction_ptr_t inst = (base_instruction_ptr_t)malloc_with_monitor(sizeof(struct base_instruction));
@@ -284,20 +334,20 @@ line_info_ptr_t line_info_init(opcode opcode_val, addr_method src_addr_val, addr
 
 line_info_ptr_t line_info_empty_init(void) {
     line_info_ptr_t tmp = (line_info_ptr_t)malloc_with_monitor(sizeof(struct line_info));
-    if (tmp == NULL)
-        printf("null");
-    tmp->opcode = 0;
-    tmp->src_addr = 0;
-    tmp->dst_addr = 0;
-    tmp->src_reg = 0;
-    tmp->dst_reg2 = 0;
-    tmp->src_imm = 0;
-    tmp->dst_imm = 0;
-    memset(tmp->src_label, 0, MAX_LABEL_LENGTH);
-    memset(tmp->dst_label, 0, MAX_LABEL_LENGTH);
-    memset(tmp->jmp_label, 0, MAX_LABEL_LENGTH);
-    tmp->first_param = 0;
-    tmp->second_param = 0;
+    if (tmp != NULL) {
+        tmp->opcode = 0;
+        tmp->src_addr = 0;
+        tmp->dst_addr = 0;
+        tmp->src_reg = 0;
+        tmp->dst_reg2 = 0;
+        tmp->src_imm = 0;
+        tmp->dst_imm = 0;
+        memset(tmp->src_label, 0, MAX_LABEL_LENGTH);
+        memset(tmp->dst_label, 0, MAX_LABEL_LENGTH);
+        memset(tmp->jmp_label, 0, MAX_LABEL_LENGTH);
+        tmp->first_param = 0;
+        tmp->second_param = 0;
+    }
     return tmp;
 }
 
@@ -338,7 +388,7 @@ int switch_and_insert(head_ptr_t arr, line_info_ptr_t instruction, int inst_coun
             break;
 
             case DIRECT:
-            insert_direct_instruction(arr, instruction->src_label, 0, A, inst_count++, False);
+            insert_direct_instruction(arr, instruction->src_label, 0, A, inst_count++, address_method);
             break;
 
         default:
@@ -357,7 +407,7 @@ int switch_and_insert(head_ptr_t arr, line_info_ptr_t instruction, int inst_coun
             break;
 
             case DIRECT:
-            insert_direct_instruction(arr, instruction->dst_label, 0, A, inst_count++, False);
+            insert_direct_instruction(arr, instruction->dst_label, 0, A, inst_count++, address_method);
             break;
 
         default:
@@ -423,12 +473,9 @@ char *opcode_to_str(opcode op)
 
     bool opcode_in_group(opcode op, opcode group[], int count)
     {
-      //printf("noa opcode = %d\n",op);
 		int i;
 		for (i = 0; i < count; i++) {
-      //printf("greuo[i] = %d\n", group[i]);
 			if (op == group[i]){
-        //printf("yes!!!");
         return True;
       }
 				

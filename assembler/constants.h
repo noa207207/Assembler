@@ -1,8 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#include "data_structure.h"
 #include "string.h"
+#include "data_structure.h"
 
 #define MAX_LINE_LENGTH 81
 #define MAX_LABEL_LENGTH 31
@@ -104,7 +104,7 @@ typedef enum {
     STRING,
     ENTRY,
     EXTERNAL,
-    OPCODE_SIZE,
+    OPCODE_SIZE
 } opcode;
 
 typedef enum addr_method{
@@ -120,76 +120,20 @@ typedef enum addr_method{
 typedef enum attributes {
     A = 0,
     E = 1,
-    R = 3
+    R = 2
 }attributes;
 
-enum decodeStatus {
-    DONE,
-    HIST
-};
-
-typedef enum opcodes {
-    MOV_OP = 0,
-    CMP_OP = 1,
-
-    ADD_OP = 2,
-    SUB_OP = 2,
-
-    LEA_OP = 4,
-
-    CLR_OP = 5,
-    NOT_OP = 5,
-    INC_OP = 5,
-    DEC_OP = 5,
-
-    JMP_OP = 9,
-    BNE_OP = 9,
-    JSR_OP = 9,
-
-    RED_OP = 12,
-    PRN_OP = 13,
-
-    RTS_OP = 14,
-    STOP_OP = 15
-} opcodes;
-
-typedef enum {
-    ADD_FUNCT = 10,
-    SUB_FUNCT = 11,
-
-    CLR_FUNCT = 10,
-    NOT_FUNCT = 11,
-    INC_FUNCT = 12,
-    DEC_FUNCT = 13,
-
-    JMP_FUNCT = 10,
-    BNE_FUNCT = 11,
-    JSR_FUNCT = 12
-} funct;
-
-// base_instruction_init function
 base_instruction_ptr_t base_instruction_init(unsigned int param_1, unsigned int param_2, unsigned int opcode, unsigned int src_addr, unsigned int dst_addr, unsigned int era);
-
-// immidiate_instruction_init function
 immidiate_instruction_ptr_t immidiate_instruction_init(unsigned int operand, unsigned int era);
-
-// direct_instruction_init function
 direct_instruction_ptr_t direct_instruction_init(unsigned int memory_address, char* label, unsigned int era);
-
-// register_instruction_init function
 register_instruction_ptr_t register_instruction_init(unsigned int src_register, unsigned int dst_register, unsigned int era);
-
-// opcode_bin_init function
 opcode_bin_ptr_t opcode_bin_init(unsigned int opcode, unsigned int attribute);
-
-// single_data_init function
 single_data_ptr_t single_data_init(unsigned int value);
-
-//binary_init function
 binary_ptr_t binary_init(addr_method type, void* ptr);
-
-line_info_ptr_t line_info_init(opcode opcode_val, addr_method src_addr_val, addr_method dst_addr_val, int src_reg_val, int dst_reg_val, int src_imm_val, int dst_imm_val, char* src_label_val, char* dst_label_val, char* jmp_label_val, addr_method first_param_val, addr_method second_param_val);
-
+line_info_ptr_t line_info_init(opcode opcode_val, addr_method src_addr_val, addr_method dst_addr_val, 
+    int src_reg_val, int dst_reg_val, int src_imm_val, int dst_imm_val, char* src_label_val, 
+    char* dst_label_val, char* jmp_label_val, addr_method first_param_val, 
+    addr_method second_param_val);
 line_info_ptr_t line_info_empty_init(void);
 
 
@@ -200,7 +144,7 @@ void print_register_instruction(register_instruction_ptr_t register_ptr);
 void print_single_data(single_data_ptr_t data_ptr);
 int switch_and_insert(head_ptr_t arr, line_info_ptr_t instruction, int inst_count, addr_method address_method, bool is_dst);
 
-// Getter functions
+/* Getter functions */ 
 opcode get_opcode(line_info_ptr_t line);
 addr_method get_src_addr(line_info_ptr_t line);
 addr_method get_dst_addr(line_info_ptr_t line);
@@ -216,6 +160,7 @@ addr_method get_second_param(line_info_ptr_t line);
 char *get_direct_instruction_label(direct_instruction_ptr_t direct_ptr);
 void set_direct_instruction_value(direct_instruction_ptr_t direct_ptr, int value);
 void set_direct_instruction_era(direct_instruction_ptr_t direct_ptr, attributes era);
+int get_data_value(single_data_ptr_t data);
 
 // Setter functions
 void set_opcode(line_info_ptr_t line, opcode opcode);
@@ -239,5 +184,11 @@ extern opcode jmp_group[];
 
 char *opcode_to_str(opcode op);
 bool opcode_in_group(opcode op, opcode group[], int count);
+
+unsigned int base_to_binary(base_instruction_ptr_t inst);
+unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst);
+unsigned int direct_to_binary(direct_instruction_ptr_t inst);
+unsigned int register_to_binary(register_instruction_ptr_t inst);
+void binary_to_pattern(unsigned int binary, char* pattern);
 
 #endif

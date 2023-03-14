@@ -6,9 +6,41 @@
 #include "constants.h"
 #include "utils.h"
 #include "data_structure.h"
+#include "parse.h"
+
+
+bool err_in_opcode(head_ptr_t headPtr, char* original_line, opcode op, int lineNumber)
+{
+    if (!(op >= 0 && op <OPCODE_SIZE)) {
+        printf("Error on line %d: %sUnknown opcode.\n", lineNumber, original_line);
+        return True;
+    }
+    return False;
+
+}
+bool err_label(head_ptr_t headPtr, char* original_line, int label_len, char* line, int lineNumber, bool is_entry)
+{
+    if (errors_in_label_format(label_len, line)) {
+        printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
+        return True;
+    }
+
+    if (!is_entry && is_duplicate_label(headPtr, line, label_len)) {
+        printf("Error on line %d: %sDuplicate label name. The name has already been used.\n", lineNumber, original_line);
+        return True;
+    }
+
+        if (is_entry && !is_duplicate_label(headPtr, line, label_len)) {
+        printf("Error on line %d: %sLabel name not exist in file.\n", lineNumber, original_line);
+        return True;
+    }
+
+    return False;
+
+}
 
 /* Checks if the label is correct. Assumes line has a label. */
-bool errors_in_label(head_ptr_t headPtr, char* original_line, char* line, int lineNumber) {
+bool errors_in_label_format(int label_len, char* line) {
     char* ptr;
     bool errors;
     int i, length, reg;
@@ -16,46 +48,27 @@ bool errors_in_label(head_ptr_t headPtr, char* original_line, char* line, int li
     errors = False;
     i = 0;
     ptr = line;
-    printf("label is %s\n", line);
 
-    while (ptr[i] != ':')
-        i++;
+    length = label_len;
 
-    length = i;
+    if (length == 0 || length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
+        return True;
 
-    if (length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
-        errors = True;
-
-    // printf("line = %d, error = %d\n", __LINE__, errors);
     for (i = 0; i < length; i++) {
         if (!isalnum(ptr[i]))
-            errors = True;
+            return True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     for (i = 0; i < OPCODE_SIZE; i++) {
         if (strlen(opcode_to_str(i)) == length && !strncmp(line, opcode_to_str(i), length))
-            errors = True;
+            return True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     reg = atoi(ptr + 1);
 
     if (ptr[0] == 'r' && ((reg >= 0 && reg < MAX_REGISTERS && length == strlen("r0"))))
-        errors = True;
-
-    // printf("line = %d, error = %d\n", __LINE__, errors);
-    if (is_duplicate_label(headPtr, line, length)) {
-        printf("Error on line %d: %sDuplicate label name. The name has already been used.\n", lineNumber, original_line);
         return True;
-    }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
 
-    if (errors) {
-        printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
-        return True;
-    }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
     return False;
 }
 
@@ -67,7 +80,7 @@ bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line,
     errors = False;
     i = 0;
     ptr = line;
-    printf("label is %s\n", line);
+    printf("org = %s,  line =A%s\n", original_line, line);
 
     while (ptr[i])
         i++;
@@ -77,36 +90,29 @@ bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line,
     if (length > MAX_LABEL_LENGTH || isdigit(ptr[0]))
         errors = True;
 
-    // printf("line = %d, error = %d\n", __LINE__, errors);
     for (i = 0; i < length; i++) {
         if (!isalnum(ptr[i]))
             errors = True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
-
     for (i = 0; i < OPCODE_SIZE; i++) {
         if (strlen(opcode_to_str(i)) == length && !strncmp(line, opcode_to_str(i), length))
             errors = True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     reg = atoi(ptr + 1);
 
     if (ptr[0] == 'r' && ((reg >= 0 && reg < MAX_REGISTERS && length == strlen("r0"))))
         errors = True;
 
-    // printf("line = %d, error = %d\n", __LINE__, errors);
     if (is_duplicate_label(headPtr, line, length)) {
         printf("Error on line %d: %sDuplicate label name. The name has already been used.\n", lineNumber, original_line);
         return True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
 
     if (errors) {
         printf("Error on line %d: %sLabel has to be at most 31 characters long, first character has to be a letter, cannot be a saved word and all characters have to be alphaneumeric.\n", lineNumber, original_line);
         return True;
     }
-    // printf("line = %d, error = %d\n", __LINE__, errors);
     return False;
 }
 
@@ -163,102 +169,123 @@ bool errors_in_data_line(char* original_line, char* line, int lineNumber, opcode
     return False;
 }
 
+int count_parameters(char *str)
+{
+    // int count = 0;
+    // char *token;
+    // token = strtok(str, ",");
+    // while (token != NULL) {
+    //     count++;
+    //     token = strtok(NULL, ",");
+    // }
+    // return count;
+
+    int count = 0;
+    char *token;
+    token = strtok(str, ", ");
+    while (token != NULL) {
+        count++;
+        token = strtok(NULL, ", ");
+    }
+    return count;
+}
+
+bool errors_in_addr_method(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op)
+{
+    if (get_dst_addr(instruction) == IMMEDIATE)
+        ERR_IMMEDIATE(second_word, lineNumber, original_line)
+    else if (get_dst_addr(instruction) == DIRECT)
+        ERR_DIRECT(second_word, lineNumber, original_line)
+    
+    if (first_word) {
+        if (get_src_addr(instruction) == IMMEDIATE)
+            ERR_IMMEDIATE(first_word, lineNumber, original_line)
+        else if (get_src_addr(instruction) == DIRECT)
+            ERR_DIRECT(line, lineNumber, original_line)
+    }
+    if (!is_legal_lba(get_opcode(instruction), get_src_addr(instruction), get_dst_addr(instruction))) {                                                                   \
+            printf("Error on line %d: %sInvalid addressing method.\n", lineNumber, original_line);
+            return True;                                                 
+        }
+    return False;
+}
+
 /* Returns True if errors found in line with zero operands. */
 bool errors_zero_operands_inst(char* original_line, char* line, int lineNumber, opcode op) {
-    if (op == -1) {
-        printf("Error on line %d: %u opcode not recognized.\n", lineNumber, original_line);
-        return True;
-    }
-
     if (op == RTS || op == STOP)
         EXTRANEOUS_TEXT(line[0], lineNumber, original_line)
     return False;
 }
 
 /* Returns True if errors found in line with one operand. */
-int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction) {
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op) {
     /* Only destination matters. REG_DIRECT that is incorrect considered as DIRECT.*/
     int err = 0;
 
-    INVALID_OPERANDS(line, get_opcode(instruction), lineNumber, original_line)
+    INVALID_OPERANDS(line, op, lineNumber, original_line)
 
     COMMA_END(line, lineNumber, original_line);
 
-    if (get_dst_addr(instruction) == IMMEDIATE) {
-        ERR_IMMEDIATE(line, lineNumber, original_line)
-    }
-
-    INVALID_ADDR_METHOD(err, lineNumber, original_line)
-
-    // printf("ERRRR = %d\n", err);
+    COMMA_START(line, lineNumber, original_line);
 
     return err;
 }
 
 /* Returns True if errors found in line with two operands. */
-int errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction) {
+int errors_two_operands_inst(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op) {
     int err = 0;
 
-    INVALID_OPERANDS(line, get_opcode(instruction), lineNumber, original_line);
+    INVALID_OPERANDS(line, op, lineNumber, original_line);
 
     COMMA_END(line, lineNumber, original_line);
+    COMMA_START(line, lineNumber, original_line);
+
     CONSECUTIVE_COMMAS(line, lineNumber, original_line);
 
     /* REG_DIRECT has already been checked. DIRECT will be checked later. */
-    if (get_src_addr(instruction) == IMMEDIATE) {
-        ERR_IMMEDIATE(first_word, lineNumber, original_line)
-    } else if (get_src_addr(instruction) == JMP) {
-        ERR_INDEX(first_word, lineNumber, original_line)
-    }
+    // if (get_src_addr(instruction) == IMMEDIATE) {
+    //     ERR_IMMEDIATE(first_word, lineNumber, original_line)
+    // } else if (get_src_addr(instruction) == DIRECT) {
+    //     ERR_DIRECT(line, lineNumber, original_line)
+    // }
 
-    if (get_dst_addr(instruction) == IMMEDIATE) {
-        ERR_IMMEDIATE(second_word, lineNumber, original_line)
-    } else if (get_dst_addr(instruction) == JMP) {
-        ERR_INDEX(second_word, lineNumber, original_line)
-    }
-    INVALID_ADDR_METHOD(err, lineNumber, original_line)
+    // if (get_dst_addr(instruction) == IMMEDIATE) {
+    //     ERR_IMMEDIATE(second_word, lineNumber, original_line)
+    // } else if (get_dst_addr(instruction) == DIRECT) {
+    //     ERR_DIRECT(second_word, lineNumber, original_line)
+    // }
+    // INVALID_ADDR_METHOD(get_opcode(instruction), get_src_addr(instruction), get_dst_addr(instruction), lineNumber, original_line)
     return err;
 }
 
-bool error_jmp_group(char* original_line, int lineNumber)
+bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op)
+{
+    ERR_JMP(line, lineNumber, original_line);
+    // INVALID_ADDR_METHOD(op, get_src_addr(instruction), get_dst_addr(instruction), line, original_line);
+    return False;
+}
+
+bool error_jmp_group(char* original_line)
 {
     bool err = False;
-    char tmp[MAX_LINE_LENGTH], *tmp2, *token;
+    char*token;
     int i = 0;
-    printf("%d: original_line = %s\n", __LINE__, original_line);
+    int len = strlen(original_line);
 
-    strcpy(tmp, original_line);
-    printf("tmp = %s\n", tmp);
-    // if (tmp[0] == ' ' || tmp[0] == '\t')
-    tmp2 = skip_spaces(tmp);
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    tmp2 = skip_word(tmp2);
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    tmp2 = skip_spaces(tmp2);
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    delete_new_line(tmp2);
-
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    while (tmp[i] != '(' && tmp[i])
+    if (original_line[len - 1] != ')')
+        return True;
+    while (original_line[i] && original_line[i] != '(')
         i++;
-    tmp2 = tmp + i +1;
-     printf("%d: org = %s\n", __LINE__, original_line);
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    token = strtok(tmp2, ",");
-     printf("%d: org = %s\n", __LINE__, original_line);
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    if(strchr(token, ' ') != NULL)
-        err = True;
-    tmp2 = strtok(NULL, ")");
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    if(strchr(token, ' ') != NULL)
-        err = True;
-    tmp2 = strtok(NULL, ")");
-    printf("%d: tmp = %s\n", __LINE__, tmp2);
-    if (tmp2 != NULL)
-        err = True;
+    if (!original_line[i])
+        return True;
     
-    INVALID_ADDR_METHOD(err, lineNumber, original_line)
+        token = strtok(original_line + 2, ",");
+        if (token == NULL || strchr(token, ' ') || strchr(token, '\t'))
+            return True;
+    
+        token = strtok(NULL, ",");
+        if (token == NULL || strchr(token, ' ') || strchr(token, '\t'))
+            return True;
     return err;
 }
 
@@ -293,24 +320,11 @@ bool errors_index(char* str) {
 }
 
 int is_invalid_operand_num(char* str, opcode op) {
-    char line_copy[MAX_LINE_LENGTH];
-    char* token;
+    if (opcode_in_group(op, second_group, 6))
+        return count_parameters(str) == 1 ? 0 : 1;
+    if (opcode_in_group(op, first_group, 5))
+        return count_parameters(str) == 2 ? 0 : 1;
 
-    // printf("%s: str = %s\n", __func__, str);
-
-    strcpy(line_copy, str);
-    token = strtok(line_copy, ",");
-
-    if (opcode_in_group(op, second_group, 9)) { /* One operand */
-        if ((token = strtok(NULL, ",")) != NULL)
-            return 1;
-    } else if (opcode_in_group(op, first_group, 5)) {
-        if ((token = strtok(NULL, ",")) == NULL)
-            return 1;
-        if ((token = strtok(NULL, ",")) != NULL)
-            return 1;
-    }
-    // printf("done\n");
     return 0;
 }
 
