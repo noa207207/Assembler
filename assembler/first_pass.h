@@ -14,7 +14,7 @@
 #define INITIAL_IC 100
 
 
-int process_first_pass(head*, char*);
+int process_first_pass(head_ptr_t, char*);
 int label_check(char*, char*);
 opcode firstWord(char*);
 

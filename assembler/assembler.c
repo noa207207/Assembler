@@ -11,33 +11,38 @@
 #include "second_pass.h"
 #include "utils.h"
 
+static head_ptr_t headPointer;
+
 void process_file(char* filename)
 {
     char *updated_filename;
-    head headPointer;
-
+   
     updated_filename = str_with_ext(filename, ".as");
 
     macro_remove(updated_filename, filename);
-
-    head_init(&headPointer, 1, 1, 1);
+    headPointer = head_init(1, 1, 1);
 
     free(updated_filename);
     updated_filename = str_with_ext(filename, ".am");
 
-    process_first_pass(&headPointer, updated_filename);
+    process_first_pass(headPointer, updated_filename);
+    process_second_pass(headPointer, updated_filename);
 
-    print_head_code_bin(&headPointer);
+    char *s;
 
-    print_symbols(&headPointer);
+    print_head_code_bin(headPointer);
 
-    print_data(&headPointer);
+    create_output(headPointer, filename);
+    instructions_to_binary(get_code_image(headPointer), get_code_used(headPointer), &s);
+
+    print_symbols(headPointer);
+
+    print_data(headPointer);
 
 }
 int main()
 {
-    char* filename = "prog2";
-    printf("hello world\n");
+    char* filename = "prog";
 
     process_file(filename);
 

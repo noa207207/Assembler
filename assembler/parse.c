@@ -8,12 +8,13 @@
 #include "errors.h"
 #include "utils.h"
 
-opcode first_group[] = {MOV, CMP, ADD, SUB, LEA};
-opcode second_group[] = {NOT, CLR, INC, DEC, JMP, BNE, RED, PRN, JSR};
-opcode third_group[] = {RTS, STOP};
+opcode first_group[5] = {MOV, CMP, ADD, SUB, LEA};
+opcode second_group[6] = {NOT, CLR, INC, DEC, RED, PRN};
+opcode third_group[2] = {RTS, STOP};
+opcode jmp_group[3] = {JMP, BNE, JSR};
 
 /* This function parses a data line, and add it into the Data Image table. It returns the updated data-count. It assumes no errors in line. */
-int parse_data_line(head* headPtr, char* line, int data_count, opcode op) {
+int parse_data_line(head_ptr_t headPtr, char* line, int data_count, opcode op) {
     int i, idx, line_num = data_count, arrayLength;
     if (op == STRING) {
         i = 1;
@@ -25,7 +26,6 @@ int parse_data_line(head* headPtr, char* line, int data_count, opcode op) {
     } else {
         i = 0;
         arrayLength = getArrayLength(line);
-        printf("array len = %d\n", arrayLength);
         for (idx = 0; idx < arrayLength; idx++) {
             insert_data_img(headPtr, atoi(line), line_num++);
             line = nextNum(line);
@@ -39,130 +39,114 @@ int get_num_operands(char *line)
 {
     unsigned int i = 0;
     char *token = strtok(line ,",");
-    printf("token = %s\n", token);
     char *temp = token;
-    while (temp && *temp && (temp = strchr(temp, ",") != NULL) ) {
-         printf("temp = %s\n", temp);
+    while (temp && *temp && (temp = strchr(temp, ',') != NULL) ) {
         ++i;
     }
     return i;
 }
 
 /* Parses an instruction line, returns the updated instruction-count. */
-int parse_inst_line(head* headPtr, char* original_line, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
+int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_cpy, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
     addr_method sourceAddr, targetAddr;
     char *token, *first_word;
     char label[MAX_LABEL_LENGTH];
     int immediate, additionalWords;
-    line_info instruction = {0};
+    static line_info_ptr_t instruction, first_param_p, second_param_p;
 
-    // printf("%s: line = %s, line in num = %d, num_op = %d\n", __func__, line, *line);
+    char *tmp, *tmp2;
 
-    //TODO:
-    // if (errors_zero_operands_inst(original_line, line, line_num, op)) {
-    //     *errorsFound = True;
-    //     return inst_count;
-    // }
+    instruction = line_info_empty_init();
+    first_param_p = line_info_empty_init();
+    second_param_p = line_info_empty_init();
 
-    instruction.opcode = op;
+    set_opcode(instruction, op);
     if (opcode_in_group(op, third_group, 2)) {
-        
         if (errors_zero_operands_inst(original_line, line, line_num, op)) {
             *errorsFound = True;
             return inst_count;
     }
-        insert_base_instruction(headPtr, instruction.opcode, 0, 0, A, inst_count++);
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, 0, A, inst_count++, 0, 0);
+        return inst_count;
+    }
+    if (opcode_in_group(op, second_group, 6)) { /* If the operation requires one operand */
+
+        if (errors_one_operand_inst(original_line, line, line_num, instruction, op)) {
+            *errorsFound = True;
+            return inst_count;
+        }
+        targetAddr = operandMethod(line, &instruction, True, NULL, NULL);
+
+        errors_in_addr_method(original_line, line, NULL, line, line_num, instruction, op);
+
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, targetAddr, A, inst_count++, 0, 0);
+        inst_count = switch_and_insert(headPtr, instruction, inst_count, targetAddr, True);
+    
         return inst_count;
     }
 
-    if (opcode_in_group(op, second_group, 9)) { /* If the operation requires one operand */
+    if (opcode_in_group(op, jmp_group, 3)) {
+        
+        targetAddr = operandMethod(line, &instruction, True, &first_param_p, &second_param_p);
 
-        targetAddr = operandMethod(line, &instruction, True);
-
-        if (errors_one_operand_inst(original_line, line, line_num, &instruction)) {
-            *errorsFound = True;
+        if (targetAddr != DIRECT && targetAddr != JMP_PARAM){
+            INVALID_ADDR_METHOD(op, 0, targetAddr, line_num, original_line);
             return inst_count;
+        }
+            
+        if (targetAddr == JMP_PARAM) {
+                if (errors_jmp_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
+                    return inst_count;
+                }
         }
 
         if (targetAddr == DIRECT) {
-            //TODO: to check if neccasary tp  ckeck label is valid 
-            // contain a-z & 1-9
+                if (errors_one_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
+                    return inst_count;
+                }
         }
-    
-        insert_base_instruction(headPtr, instruction.opcode, 0, targetAddr, A, inst_count++);
-        switch (targetAddr)
-        {
-            case REG_DIRECT:
-            insert_register_instruction(headPtr, 0, instruction.dst_reg, A, inst_count++);
-            break;
-            
-            case IMMEDIATE:
-            insert_immidiate_instruction(headPtr,instruction.dst_imm, A, inst_count++);
-            break;
 
-            case DIRECT:
-            insert_direct_instruction(headPtr, instruction.dst_label, 0, A, inst_count++);
-            break;
-
-        default:
-            break;
+        insert_base_instruction(headPtr, get_opcode(instruction), 0, targetAddr, A, inst_count++, get_first_param(instruction), get_second_param(instruction));
+        insert_direct_instruction(headPtr, get_dst_label(instruction), 0,  A, inst_count++, targetAddr);
+                  
+        if (!first_param_p)
+            return inst_count;
+        
+        if (get_first_param(instruction) == REG_DIRECT && get_second_param(instruction) == REG_DIRECT) {
+            insert_register_instruction(headPtr, get_src_reg(first_param_p), get_dst_reg(second_param_p), A, inst_count++);
+            return inst_count;
         }
-    
+        inst_count = switch_and_insert(headPtr, first_param_p, inst_count, get_first_param(instruction), False);
+        inst_count = switch_and_insert(headPtr, second_param_p, inst_count, get_second_param(instruction), True);
+
         return inst_count;
     }
 
-    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */
+    if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */        
         token = strtok(line, ",");
-        sourceAddr = operandMethod(token, &instruction, False);
+        sourceAddr = operandMethod(token, &instruction, False, NULL, NULL);
         first_word = token;
         token = strtok(NULL, ",");
         if (token != NULL)
-        targetAddr = operandMethod(token, &instruction, True);
-        if (is_legal_lba(op, sourceAddr, targetAddr) == False)
-            return inst_count; /*TODO*/
-
-        if (errors_two_operands_inst(original_line, line_copy, first_word, token, line_num, &instruction)) {
+            targetAddr = operandMethod(token, &instruction, True, NULL, NULL);
+       
+        if (errors_two_operands_inst(original_line, line_copy, first_word, token, line_num, instruction, op)) {
             *errorsFound = True;
             return inst_count;
         }
 
-        insert_base_instruction(headPtr, instruction.opcode, sourceAddr, targetAddr, A, inst_count++);
-        if (sourceAddr == REG_DIRECT && targetAddr == REG_DIRECT) {
-            insert_register_instruction(headPtr, instruction.src_reg, instruction.dst_reg, A, inst_count++);
+        if (errors_in_addr_method(original_line, line, first_word, token, line_num, instruction, op)) {
+            *errorsFound = True;
             return inst_count;
         }
-        //  printf("source = %d\n", (int)sourceAddr);
-        switch (sourceAddr)
-        {
-            case REG_DIRECT:
-            insert_register_instruction(headPtr, instruction.src_reg, 0, A, inst_count++);
-            break;
 
-            case IMMEDIATE:
-            insert_immidiate_instruction(headPtr,instruction.src_imm, A, inst_count++);
-            break;
-
-            case DIRECT:
-            insert_direct_instruction(headPtr, instruction.src_label, 0, A, inst_count++);
-            break;
-
-        default:
-            break;
+        insert_base_instruction(headPtr, get_opcode(instruction), sourceAddr, targetAddr, A, inst_count++, 0, 0);
+        if (sourceAddr == REG_DIRECT && targetAddr == REG_DIRECT) {
+            insert_register_instruction(headPtr, get_src_reg(instruction), get_dst_reg(instruction), A, inst_count++);
+            return inst_count;
         }
-
-        switch (targetAddr)
-        {
-            case REG_DIRECT:
-            insert_register_instruction(headPtr, 0, instruction.dst_reg, A, inst_count++);
-            break;
-
-            case DIRECT:
-            insert_direct_instruction(headPtr, instruction.dst_label, 0, A, inst_count++);
-
-        default:
-            break;
-        }
-    
+        inst_count = switch_and_insert(headPtr, instruction, inst_count, sourceAddr, False);
+        inst_count = switch_and_insert(headPtr, instruction, inst_count, targetAddr, True);
         return inst_count;
     }
     return inst_count;
@@ -196,62 +180,72 @@ char* nextNum(char* line) {
 }
 
 /* Checks if an operand is an immediate, it assumes so if first character is '#'. It also updates the line_info pointer. */
-bool isImmediate(char* arg, line_info* instruction, bool isDst) {
+bool isImmediate(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == '#') {
-        if (isDst)
-            instruction->dst_imm = atoi(arg + i);
-        else
-            instruction->src_imm = atoi(arg + i);
-        return True;
+        if (isDst) {
+        set_dst_addr(instruction, IMMEDIATE);
+        set_dst_imm(instruction, atoi(arg + i));
+
+    } else {
+        set_src_addr(instruction, IMMEDIATE);
+        set_src_imm(instruction, atoi(arg + i));
+    }
+    return True;
     }
     return False;
 }
 
 /* The function returns True if the operand is of type Direct. It assumes so if it's not a register/index/immediate and does not check errors. It also updates the line_info pointer.*/
-bool isDirect(char* arg, line_info* instruction, bool isDst)
+bool isDirect(char* arg, line_info_ptr_t instruction, bool isDst)
 {
-//    printf("direct, %s\n", arg);
     if (isDst) {
-        instruction->dst_addr = DIRECT;
-        strcpy(instruction->dst_label, arg);
+        set_dst_addr(instruction, DIRECT);
+        set_dst_label(instruction, arg, MAX_LABEL_LENGTH);
+
     } else {
-        instruction->src_addr = DIRECT;
-        strcpy(instruction->src_label, arg);
+        set_src_addr(instruction, DIRECT);
+        set_src_label(instruction, arg, MAX_LABEL_LENGTH);
     }
     return True;
 }
 
-/* Returns True if Index operand, if it has character '['. No other operand method is allowed to have that character. Does not error check at this point. It also updates the line_info pointer.*/
-bool isIndex(char* arg, line_info* instruction, bool isDst) {
+bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
     int i, labelLength, reg;
+    char *token, *line, *first;
+    addr_method first_param_m, second_param_m;
 
     i = 0;
-
     if (isImmediate(arg, instruction, isDst) || isRegister(arg, instruction, isDst))
         return False;
-    while (arg[i] != '[' && arg[i])
-        i++;
-    if (arg[i] == '[') {
-        /* Error check */
-        labelLength = i;
-        reg = atoi(arg + labelLength + 2);
-        if (isDst) {
-            instruction->dst_addr = JMP_M;
-            instruction->dst_reg = reg;
-            strncpy(instruction->dst_label, arg, labelLength);
-        } else {
-            instruction->src_addr = JMP_M;
-            instruction->src_reg = reg;
-            strncpy(instruction->src_label, arg, labelLength);
-        }
-        return True;
-    }
-    return False;
+    while (arg[i] != '(' && arg[i])
+         i++;
+    if (arg[i] == '(') {
+        if (arg[strlen(arg) - 1] != ')')
+            return False;
+            labelLength = i;
+            line = arg + labelLength + 1;
+            first = token = strtok(line, ",");
+            first_param_m = operandMethod(token, first_param_info, False, NULL, NULL);
+            token = strtok(NULL, ")");
+            if (token != NULL)
+                second_param_m = operandMethod(token, second_param_info, True, NULL, NULL);
+            set_first_param(instruction, first_param_m);
+            set_second_param(instruction, second_param_m);
+
+     } else {
+        *first_param_info = NULL;
+        *second_param_info = NULL;
+        return False;
+     }
+    set_dst_addr(instruction, JMP_PARAM);
+    set_dst_label(instruction, arg, i);
+
+    return True;
 }
 
 /* Returns true if correct register, within range 0EMPTY5. It also updates the line_info pointer.*/
-bool isRegister(char* arg, line_info* instruction, bool isDst) {
+bool isRegister(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == 'r') {
         /* Error check? */
@@ -260,12 +254,12 @@ bool isRegister(char* arg, line_info* instruction, bool isDst) {
         if (arg[i + 1] && arg[i + 2])
             return False;
         if (isDst) {
-            instruction->dst_addr = REG_DIRECT;
-            instruction->dst_reg = atoi(arg + i);
+            set_dst_addr(instruction, REG_DIRECT);
+            set_dst_reg(instruction, (int)atoi(arg + i));
             
         } else {
-            instruction->src_addr = REG_DIRECT;
-            instruction->src_reg = atoi(arg + i);
+            set_src_addr(instruction, REG_DIRECT);
+            set_src_reg(instruction, (int)atoi(arg + i));
         }
         arg = arg + 2;
         return True;
@@ -274,13 +268,15 @@ bool isRegister(char* arg, line_info* instruction, bool isDst) {
 }
 
 /* Returns the address method of string arg. Assumes arg is not a NULL pointer. */
-addr_method operandMethod(char* arg, line_info* instruction, bool isDst) {
+addr_method operandMethod(char* arg, line_info_ptr_t *instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
     //TODO; verify id immidiate / direct/  register?
-    if (isRegister(arg, instruction, isDst))
+    if (isRegister(arg, *instruction, isDst))
         return REG_DIRECT;
-    else if (isImmediate(arg, instruction, isDst))
+    else if (isImmediate(arg, *instruction, isDst))
         return IMMEDIATE;
-    else if (isDirect(arg, instruction, isDst))
+    else if (first_param_info && second_param_info && is_jmp_param(arg, *instruction, isDst, first_param_info, second_param_info))
+         return JMP_PARAM;
+    else if (isDirect(arg, *instruction, isDst))
         return DIRECT;
     return EMPTY; /* Never reaches here. */
 }
@@ -291,6 +287,9 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
 
     switch (op)
     {
+    case CMP:
+        err = False;
+        break;
     case MOV:
     case ADD:
     case SUB:
@@ -305,7 +304,7 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
     case BNE:
     case RED:
     case JSR:
-        if (src_mtd != EMPTY || dst_mtd == EMPTY || dst_mtd == IMMEDIATE)
+        if (src_mtd != 0 || dst_mtd == IMMEDIATE)
             err = False;
         break;
     case LEA:
@@ -313,11 +312,11 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
             err = False;
         break;
     case PRN:
-        if (src_mtd != EMPTY || dst_mtd == IMMEDIATE || dst_mtd == EMPTY)
+        if (src_mtd != 0)
             err = False;
     case RTS:
     case STOP:
-        if (src_mtd != EMPTY || dst_mtd != EMPTY)
+        if (src_mtd != 0 || dst_mtd != 0)
             err = False;
         break;    
     default:
@@ -334,11 +333,11 @@ int howManyWords(addr_method sourceAddr, addr_method targetAddr) {
         return ONE_WORD;
     } else if (sourceAddr == IMMEDIATE && targetAddr == IMMEDIATE) {
         return TWO_WORDS_IMMEDIATE;
-    } else if ((sourceAddr == REG_DIRECT && (targetAddr == DIRECT || targetAddr == JMP_M)) || (targetAddr == REG_DIRECT && (sourceAddr == DIRECT || sourceAddr == JMP_M))) {
+    } else if ((sourceAddr == REG_DIRECT && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) || (targetAddr == REG_DIRECT && (sourceAddr == DIRECT || sourceAddr == JMP_PARAM))) {
         return TWO_WORDS;
-    } else if ((sourceAddr == IMMEDIATE && (targetAddr == DIRECT || targetAddr == JMP_M)) || (targetAddr == IMMEDIATE && (sourceAddr == DIRECT || sourceAddr == JMP_M))) {
+    } else if ((sourceAddr == IMMEDIATE && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) || (targetAddr == IMMEDIATE && (sourceAddr == DIRECT || sourceAddr == JMP_PARAM))) {
         return THREE_WORDS;
-    } else if ((sourceAddr == DIRECT || sourceAddr == JMP_M) && (targetAddr == DIRECT || targetAddr == JMP_M)) {
+    } else if ((sourceAddr == DIRECT || sourceAddr == JMP_PARAM) && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) {
         return FOUR_WORDS;
     }
     return EMPTY; /* Should never reach here. */

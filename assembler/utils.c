@@ -69,10 +69,67 @@ bool empty_string(char* str) {
 /* Returns a pointer right after the current word. */
 char* skip_word(char* str) {
     int idx = 0;
-    while (!isspace(str[idx]) && str[idx]) {
+    while (!isspace(str[idx]) && str[idx] && str[idx] != ',') {
         idx++;
     }
     return str + idx;
+}
+
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+void remove_end_spaces(char *str)
+{
+    int len = strlen(str);
+    int i, j;
+
+    for (j = len-1; j >= 0 && isspace(str[j]); j--);
+    str[j+1] = '\0';
+}
+
+void removeSpacesAndTabs(char *str) {
+    int len = strlen(str);
+    int i, j;
+
+    // Remove spaces and tabs from the beginning of the string
+    for (i = 0; isspace(str[i]); i++);
+    if (i > 0) {
+        memmove(str, str+i, len-i+1);
+        len -= i;
+    }
+
+    // Remove spaces and tabs from the end of the string
+    for (j = len-1; j >= 0 && isspace(str[j]); j--);
+    str[j+1] = '\0';
+
+    // Remove spaces and tabs before commas
+    for (i = 0; i < len; i++) {
+        if (str[i] == ',' && isspace(str[i-1])) {
+            for (j = i-1; j >= 0 && isspace(str[j]); j--);
+            memmove(str+j+1, str+i, len-i+1);
+            len -= i-j-1;
+        }
+    }
+
+    // Remove spaces and tabs after commas
+    for (i = 0; i < len; i++) {
+        if (str[i] == ',' && isspace(str[i+1])) {
+            for (j = i+1; j < len && isspace(str[j]); j++);
+            memmove(str+i+1, str+j, len-j+1);
+            len -= j-i-1;
+        }
+    }
+
+    // Ensure there is only one space between words (replace tabs with spaces)
+    for (i = 0; i < len-1; i++) {
+        if (isspace(str[i]) && (isspace(str[i+1]) || str[i+1] == '\t')) {
+            str[i] = ' ';
+            memmove(str+i+1, str+i+2, len-i);
+            len--;
+            i--;
+        }
+    }
 }
 
 /* Deletes the spaces, tabs and newline in a given string. */
@@ -90,6 +147,13 @@ void delete_spaces(char* p) {
         i++;
     }
     p[count] = '\0'; /* End the string. */
+}
+
+void delete_new_line(char* p) {
+    int i = 0, count = 0;
+    bool str_flag = False;
+    if (p[strlen(p) - 1] == '\n')
+        p[strlen(p) - 1] = 0;
 }
 
 /* Returns hist, given a number. */

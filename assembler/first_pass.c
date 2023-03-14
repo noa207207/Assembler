@@ -10,14 +10,15 @@
 #include "constants.h"
 
 /* The function is in charge of first pass. It returns False if no errors were found, otherwise returns True. */
-int process_first_pass(head* headPtr, char* filename) {
+int process_first_pass(head_ptr_t headPtr, char* filename) {
     int inst_count, data_count, shift, line_num;
-    char line[MAX_LINE_LENGTH], label[MAX_LABEL_LENGTH], line_copy[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
+    char line[MAX_LINE_LENGTH], label[MAX_LABEL_LENGTH], line_copy[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH], wordPointer_cpy[MAX_LINE_LENGTH];
     char* wordPointer;
     opcode op;
     bool isLabel, errorsFound;
     FILE* filePointer;
     int err;
+    int prev_inst_count, prev_data_count;
 
     inst_count = INITIAL_IC;
     data_count = line_num = 0;
@@ -25,73 +26,86 @@ int process_first_pass(head* headPtr, char* filename) {
     filePointer = fopen(filename, "r");
 
     while (fgets(line, MAX_LINE_LENGTH, filePointer)) {
+        
+        if (line[strlen(line) - 1] != '\n' && line[strlen(line)] != EOF) {
+            ERR_LONG_LINE(++line_num, line)
+            
+        // Discard the remaining characters in the line
+        int c;
+        while ((c = fgetc(filePointer)) != '\n' && c != EOF) {}
+        
+        if (c == EOF) {
+            // End-of-file reached while discarding characters
+            break;
+        }
+        continue;
+    }
+        
+        prev_inst_count = inst_count;
+        prev_data_count = data_count;
+        errorsFound = False;
+        isLabel = False;
         line_num++;
-        if (empty_string(line) || is_comment(line))
+        if (empty_string(line) || is_comment(line)){
             continue;
+        }
 
         strcpy(original_line, line);
 
         wordPointer = skip_spaces(line); /* Points at first word */
 
-        // printf("[%d]: original_line = %s, line = %s, count = %d, wordPointer = %s\n",
-        //     __LINE__, original_line, line, inst_count, wordPointer);
+        
 
         if ((shift = label_check(wordPointer, label)) != -1) {
             isLabel = True;
-            errorsFound += (errors_in_label(headPtr, original_line, wordPointer, line_num));
+            errorsFound = (err_label(headPtr, original_line, shift - 1, wordPointer, line_num, False));
+            if (errorsFound)
+                continue;
             wordPointer += shift;
             wordPointer = skip_spaces(wordPointer);
         }
 
         /* By here, points at first word after label, if label exists. */
+        
         op = firstWord(wordPointer);
+    
+        if (err_in_opcode(headPtr, original_line, op, line_num))
+            continue;
+    
         wordPointer = skip_word(wordPointer);
-        delete_spaces(wordPointer); //= STR,r6
-        strcpy(line_copy, wordPointer);  //= STR,r6
+        wordPointer = skip_spaces(wordPointer);
+        strcpy(wordPointer_cpy, wordPointer);
+        remove_end_spaces(wordPointer_cpy);
+        removeSpacesAndTabs(wordPointer);
+        strcpy(line_copy, wordPointer);
 
         if (op == ENTRY) /* Second Pass deals with this case. */
             continue;
         if (op == DATA || op == STRING) {
-            printf("op = %d\n", (int)op);
-            printf("label = %s\n", label);
-            if (isLabel) {
-                printf("is label\n");
-                insert_data_symbol(headPtr, label, data_count, op);
-            }
-
-            isLabel = False;
             errorsFound = (errors_in_data_line(original_line, wordPointer, line_num, op)) ? True : errorsFound;
 
-            if (!errorsFound)
-                data_count = parse_data_line(headPtr, wordPointer, data_count, op);
-                printf("data count = %d\n", data_count);
-            continue;
+            if (errorsFound)
+                continue;
+            data_count = parse_data_line(headPtr, wordPointer, data_count, op);
+            if (isLabel && data_count > prev_data_count)
+                insert_data_symbol(headPtr, label, prev_data_count, op);         
         }
         if (op == EXTERNAL) {
-            /* Error detection done during second pass. */
+            errorsFound = (err_label(headPtr, original_line, strlen(wordPointer_cpy), wordPointer_cpy, line_num, False));
+            if (errorsFound)
+                continue;
             insert_extern(headPtr, wordPointer, op);
             isLabel = False;
             continue;
         }
 
-        /* By this point it must be an instruction line. */
-        if (isLabel) {
-            insert_code_symbol(headPtr, label, inst_count, op);
-        }
-            
-
-        isLabel = False;
-
-
-        // printf("[%d]: original_line = %s, wordPointer =  %s, line = %s, count = %d, op = %d\n",
-        //     __LINE__, original_line, wordPointer, line_copy, inst_count, (int)op);
-        inst_count = parse_inst_line(headPtr, original_line, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
-        printf("inst count  = %d\n", inst_count);
+        inst_count = parse_inst_line(headPtr, original_line, wordPointer_cpy, wordPointer, line_copy, inst_count, op, &errorsFound, line_num);
+        if (isLabel && inst_count > prev_inst_count)
+            insert_code_symbol(headPtr, label, prev_inst_count, (int)op);
     }
     fclose(filePointer);
 
     update_data_count(headPtr, inst_count);
-
 
     return errorsFound;
 }
@@ -103,7 +117,7 @@ int label_check(char* line, char* label) {
     while (ptr[i] != ':' && ptr[i])
         i++;
     if (ptr[i] == ':') {
-        if (label != NULL) {
+        if (label != NULL && i < MAX_LABEL_LENGTH) {
             strncpy(label, ptr, i);
             label[i] = 0;
         }
@@ -114,7 +128,7 @@ int label_check(char* line, char* label) {
 /* Returns number of operation (first word). If it's incorrect then it returns -1. */
 opcode firstWord(char* line) {
     int count = 0, i;
-    for (i = 0; !isspace(line[i]) && line[i] != '\n'; i++)
+    for (i = 0; !isspace(line[i]) && line[i] != '\n' && line[i] != ','; i++)
         count++; /* Count characters of first word. */
     for (i = 0; i < OPCODE_SIZE; i++) {
         if (strlen(opcode_to_str((opcode)i)) == count && !strncmp(line, opcode_to_str((opcode)i), count)) {

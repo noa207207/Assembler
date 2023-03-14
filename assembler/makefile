@@ -15,11 +15,11 @@ assembler.o: assembler.c $(HEADERS)
 constants.o: constants.c $(HEADERS)
 	$(OBJ_FLAG) constants.c -o constants.o
 
-pre_assembler.o: pre_assembler.c $(HEADERS)
-	$(OBJ_FLAG) pre_assembler.c -o pre_assembler.o
-
 data_structure.o: data_structure.c $(HEADERS)
 	$(OBJ_FLAG) data_structure.c -o data_structure.o
+
+pre_assembler.o: pre_assembler.c $(HEADERS)
+	$(OBJ_FLAG) pre_assembler.c -o pre_assembler.o
 
 first_pass.o: first_pass.c $(HEADERS)
 	$(OBJ_FLAG) first_pass.c -o first_pass.o
@@ -39,5 +39,8 @@ utils.o: utils.c $(HEADERS)
 output.o: output.c $(HEADERS)
 	$(OBJ_FLAG) output.c -o output.o
 
+debug: $(OBJECTS)
+	$(MAIN_FLAG) $(OBJECTS) -o assembler-debug
+
 clean:
-	rm *.o
+	rm -f *.o
