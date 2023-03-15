@@ -64,50 +64,50 @@ struct line_info{
 
 unsigned int base_to_binary(base_instruction_ptr_t inst) {
     unsigned int binary = 0;
-    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
-    binary |= (inst->dst_addr & 0x3) << 2; // set bits 2-3 to dst_addr[2-3]
-    binary |= (inst->src_addr & 0x3) << 4; // set bits 4-5 to src_addr[4-5]
-    binary |= (inst->opcode & 0xF) << 6; // set bits 6-9 to opcode[6-9]
-    binary |= (inst->param_2 & 0x3) << 10; // set bits 10-11 to param2[10-11]
-    binary |= (inst->param_1 & 0x3) << 12; // set bits 12-13 to param1[12-13]
+    binary |= (inst->era & 0x3) << 0; /* set bits 0-1 to era[0-1] */ 
+    binary |= (inst->dst_addr & 0x3) << 2; /* set bits 2-3 to dst_addr[2-3] */
+    binary |= (inst->src_addr & 0x3) << 4; /* set bits 4-5 to src_addr[4-5] */
+    binary |= (inst->opcode & 0xF) << 6; /* set bits 6-9 to opcode[6-9] */
+    binary |= (inst->param_2 & 0x3) << 10; /* set bits 10-11 to param2[10-11] */
+    binary |= (inst->param_1 & 0x3) << 12; /* set bits 12-13 to param1[12-13] */
     return binary;
 }
 
 unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst) {
     unsigned int binary = 0;
-    binary |= (inst->operand & 0xFFF) << 2; // set bits 2-13 to operand[2-13]
-    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    binary |= (inst->operand & 0xFFF) << 2; /* set bits 2-13 to operand[2-13] */
+    binary |= (inst->era & 0x3) << 0; /* set bits 0-1 to era[0-1] */
     return binary;
 }
 
 unsigned int direct_to_binary(direct_instruction_ptr_t inst) {
     unsigned int binary = 0;
-    binary |= (inst->memory_address & 0xFFF) << 2; // set bits 2-12 to memory_address[2-12]
-    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    binary |= (inst->memory_address & 0xFFF) << 2; /* set bits 2-12 to memory_address[2-12] */
+    binary |= (inst->era & 0x3) << 0; /* set bits 0-1 to era[0-1] */
     return binary;
 }
 
 unsigned int register_to_binary(register_instruction_ptr_t inst) {
     unsigned int binary = 0;
-    binary |= (inst->src_register & 0x3F) << 8; // set bits 8-13 to src_register[8-13]
-    binary |= (inst->dst_register & 0x3F) << 2; // set bits 2-7 to dst_register[2-7]
-    binary |= (inst->era & 0x3) << 0; // set bits 0-1 to era[0-1]
+    binary |= (inst->src_register & 0x3F) << 8; /* set bits 8-13 to src_register[8-13] */
+    binary |= (inst->dst_register & 0x3F) << 2; /* set bits 2-7 to dst_register[2-7] */
+    binary |= (inst->era & 0x3) << 0; /* set bits 0-1 to era[0-1] */
     return binary;
 }
 
 void binary_to_pattern(unsigned int binary, char* pattern) {
-    // initialize pattern with 14 '.' characters
+    /* initialize pattern with 14 '.' characters */
     memset(pattern, '.', 14);
-    pattern[14] = '\0'; // null-terminate the string
+    pattern[14] = '\0'; /* null-terminate the string */
 
-    // convert binary to a 14-bit binary string
+    /* convert binary to a 14-bit binary string */
     char binary_str[15];
-    binary_str[14] = '\0'; // null-terminate the string
+    binary_str[14] = '\0'; /* null-terminate the string */
     for (int i = 0; i < 14; i++) {
         binary_str[i] = ((binary >> (13 - i)) & 0x1) ? '/' : '.';
     }
 
-    // copy the 14-bit binary string to the pattern string
+    /* copy the 14-bit binary string to the pattern string */
     strncpy(pattern, binary_str, 14);
 }
 
@@ -131,7 +131,7 @@ void set_direct_instruction_era(direct_instruction_ptr_t direct_ptr, attributes 
     direct_ptr->era = era;
 }
 
-// Getters
+/* Getters */
 opcode get_opcode(line_info_ptr_t line_info_ptr) {
     return line_info_ptr->opcode;
 }
@@ -180,7 +180,7 @@ addr_method get_second_param(line_info_ptr_t line_info_ptr) {
     return line_info_ptr->second_param;
 }
 
-// Setters
+/* Setters */
 void set_opcode(line_info_ptr_t line_info_ptr, opcode opc) {
     line_info_ptr->opcode = opc;
 }

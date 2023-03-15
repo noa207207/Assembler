@@ -162,7 +162,7 @@ void set_direct_instruction_value(direct_instruction_ptr_t direct_ptr, int value
 void set_direct_instruction_era(direct_instruction_ptr_t direct_ptr, attributes era);
 int get_data_value(single_data_ptr_t data);
 
-// Setter functions
+/* Setter functions */
 void set_opcode(line_info_ptr_t line, opcode opcode);
 void set_src_addr(line_info_ptr_t line, addr_method src_addr);
 void set_dst_addr(line_info_ptr_t line, addr_method dst_addr);
