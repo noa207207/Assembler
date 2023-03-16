@@ -1,5 +1,3 @@
-// #include "second_pass.h"
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +30,7 @@ bool process_second_pass(head_ptr_t headPtr, char* filename) {
             while ((c = fgetc(filePointer)) != '\n' && c != EOF) {}
         
             if (c == EOF) {
-                // End-of-file reached while discarding characters
+                /* End-of-file reached while discarding characters */ 
                 break;
             }
             line_num++;
@@ -102,10 +100,9 @@ bool insert_entry(head_ptr_t headPtr, char* label, char* line, int lineNumber) {
 
 /* Updates the code image with BASE/HIST. It returns True if errors were found, and False upon success. */
 bool update_code_symbols(head_ptr_t headPtr) {
-    int i, length, value, attribute;
+    int i, length, value;
     bool errors, is_extern;
     char *label;
-    value;
     errors = False;
     length = get_code_used(headPtr);
 

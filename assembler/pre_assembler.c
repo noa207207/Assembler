@@ -1,17 +1,16 @@
+#include "constants.h"
 #include "pre_assembler.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include "utils.h"
-#include "constants.h"
+
 
 /* Receives a file with ".as" extension and creates a new one with ".am" extension, with the macros replaced.*/
 int macro_remove(char* filename, char* base_filename) {
     int cmd_length, idx, macro_status;
     bool macroFlag, replacedFlag;
-    int err;
     macroArray macro_array;
 
     char line[MAX_LINE_LENGTH];
@@ -28,8 +27,7 @@ int macro_remove(char* filename, char* base_filename) {
         return -1;
 
     macro_content[0] = 0;
-    macroFlag = replacedFlag = false;
-    err = 0;
+    macroFlag = replacedFlag = False;
 
     init_macro_array(&macro_array, 1);
 
@@ -51,7 +49,7 @@ int macro_remove(char* filename, char* base_filename) {
         } else if (macro_status == MACRO_CONTENT) {
             strncat(macro_content, line, count_line_length(line));
         } else if (macro_status == MACRO_END) {
-            macroFlag = false;
+            macroFlag = False;
             insert_macro_array(&macro_array, macro_name, macro_content);
             macro_content[0] = 0;
         } else {
@@ -64,7 +62,7 @@ int macro_remove(char* filename, char* base_filename) {
             /* By this point we know it's not a macro name. And not a definition of a new macro. We copy the line. */
             if (!replacedFlag)
                 fputs(line, dst_file_ptr);
-            replacedFlag = false;
+            replacedFlag = False;
         }
     }
     free_macro_array(&macro_array);

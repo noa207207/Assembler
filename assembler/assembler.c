@@ -15,7 +15,7 @@ static head_ptr_t headPointer;
 
 void process_file(char* filename)
 {
-    char *updated_filename;
+    char *updated_filename, *s;
    
     updated_filename = str_with_ext(filename, ".as");
 
@@ -27,8 +27,6 @@ void process_file(char* filename)
 
     process_first_pass(headPointer, updated_filename);
     process_second_pass(headPointer, updated_filename);
-
-    char *s;
 
     print_head_code_bin(headPointer);
 

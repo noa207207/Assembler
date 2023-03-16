@@ -38,10 +38,10 @@ int parse_data_line(head_ptr_t headPtr, char* line, int data_count, opcode op) {
 int get_num_operands(char *line)
 {
     unsigned int i = 0;
-    char *token = strtok(line ,",");
-    char *temp = token;
-    while (temp && *temp && (temp = strchr(temp, ',') != NULL) ) {
+    char *token = strtok(line, ",");
+    while (token && *token && (strchr(token, ',') != NULL)) {
         ++i;
+        token = strtok(NULL, ",");
     }
     return i;
 }
@@ -50,11 +50,7 @@ int get_num_operands(char *line)
 int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_cpy, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
     addr_method sourceAddr, targetAddr;
     char *token, *first_word;
-    char label[MAX_LABEL_LENGTH];
-    int immediate, additionalWords;
     static line_info_ptr_t instruction, first_param_p, second_param_p;
-
-    char *tmp, *tmp2;
 
     instruction = line_info_empty_init();
     first_param_p = line_info_empty_init();
@@ -211,10 +207,11 @@ bool isDirect(char* arg, line_info_ptr_t instruction, bool isDst)
 }
 
 bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
-    int i, labelLength, reg;
-    char *token, *line, *first;
+    int i, labelLength;
+    char *token, *line;
     addr_method first_param_m, second_param_m;
 
+    second_param_m = IMMEDIATE;
     i = 0;
     if (isImmediate(arg, instruction, isDst) || isRegister(arg, instruction, isDst))
         return False;
@@ -225,7 +222,7 @@ bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_
             return False;
             labelLength = i;
             line = arg + labelLength + 1;
-            first = token = strtok(line, ",");
+            token = strtok(line, ",");
             first_param_m = operandMethod(token, first_param_info, False, NULL, NULL);
             token = strtok(NULL, ")");
             if (token != NULL)
@@ -269,7 +266,6 @@ bool isRegister(char* arg, line_info_ptr_t instruction, bool isDst) {
 
 /* Returns the address method of string arg. Assumes arg is not a NULL pointer. */
 addr_method operandMethod(char* arg, line_info_ptr_t *instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
-    //TODO; verify id immidiate / direct/  register?
     if (isRegister(arg, *instruction, isDst))
         return REG_DIRECT;
     else if (isImmediate(arg, *instruction, isDst))

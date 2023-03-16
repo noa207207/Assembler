@@ -17,8 +17,8 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
     opcode op;
     bool isLabel, errorsFound;
     FILE* filePointer;
-    int err;
     int prev_inst_count, prev_data_count;
+    int c;
 
     inst_count = INITIAL_IC;
     data_count = line_num = 0;
@@ -30,12 +30,12 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
         if (line[strlen(line) - 1] != '\n' && line[strlen(line)] != EOF) {
             ERR_LONG_LINE(++line_num, line)
             
-        // Discard the remaining characters in the line
-        int c;
+        /* Discard the remaining characters in the line */ 
+    
         while ((c = fgetc(filePointer)) != '\n' && c != EOF) {}
         
         if (c == EOF) {
-            // End-of-file reached while discarding characters
+            /* End-of-file reached while discarding characters */ 
             break;
         }
         continue;

@@ -55,14 +55,14 @@ char *opcode_to_str(opcode op)
     }
 }
 
-    bool opcode_in_group(opcode op, opcode group[], int count)
-    {
-		int i;
-		for (i = 0; i < count; i++) {
-			if (op == group[i]){
-        return True;
-      }
-				
-		}
-		return False;
+bool opcode_in_group(opcode op, opcode group[], int count)
+{
+    int i;
+    for (i = 0; i < count; i++) {
+        if (op == group[i]){
+    return True;
     }
+            
+    }
+    return False;
+}

@@ -14,8 +14,6 @@ typedef struct register_instruction *register_instruction_ptr_t;
 typedef struct opcode_bin *opcode_bin_ptr_t;
 typedef struct line_info *line_info_ptr_t;
 
-enum opcode;
-
 union binary {
     base_instruction_ptr_t base_ptr;
     immidiate_instruction_ptr_t immidiate_ptr;
@@ -24,12 +22,6 @@ union binary {
     single_data_ptr_t data_ptr;
 };
 typedef union binary *binary_ptr_t;
-
-
-typedef enum addr_method addr_method;
-typedef enum bool bool;
-// typedef enum attributes attributes;
-
 
 typedef struct head head_t;
 typedef struct symbol symbol_t;
@@ -70,22 +62,22 @@ char *get_symbol_attributes(head_ptr_t head, int idx);
 void set_symbol_attributes(head_ptr_t head, int idx, char *attributes);
 int get_symbol_value(head_ptr_t head, int idx);
 void set_symbol_value(head_ptr_t head, int idx, int value);
-enum bool get_symbol_isExternal(head_ptr_t head, int idx);
+bool get_symbol_isExternal(head_ptr_t head, int idx);
 void set_symbol_isExternal(head_ptr_t head, int idx, bool isExternal);
-enum bool get_symbol_isCode(head_ptr_t head, int idx);
+bool get_symbol_isCode(head_ptr_t head, int idx);
 void set_symbol_isCode(head_ptr_t head, int idx, bool isCode);
-enum bool get_symbol_isData(head_ptr_t head, int idx);
+bool get_symbol_isData(head_ptr_t head, int idx);
 void set_symbol_isData(head_ptr_t head, int idx, bool isData);
-enum bool get_symbol_isEntry(head_ptr_t head, int idx);
+bool get_symbol_isEntry(head_ptr_t head, int idx);
 void set_symbol_isEntry(head_ptr_t head, int idx, bool isEntry);
 int get_data_line(head_ptr_t head, int idx);
 void set_data_line(head_ptr_t head, int idx, int line);
 char* get_data_label(head_ptr_t head, int idx);
 void set_data_label(head_ptr_t head, int idx, char* label);
 int get_data_toDecode(head_ptr_t head, int idx);
-void set_data_toDecode(head_ptr_t head, int idx, enum bool toDecode);
-enum bool get_data_isExtern(head_ptr_t head, int idx);
-void set_data_isExtern(head_ptr_t head, int idx, enum bool isExtern);
+void set_data_toDecode(head_ptr_t head, int idx, bool toDecode);
+bool get_data_isExtern(head_ptr_t head, int idx);
+void set_data_isExtern(head_ptr_t head, int idx, bool isExtern);
 addr_method get_data_type(head_ptr_t head, int idx);
 void set_data_type(head_ptr_t head, int idx, addr_method type);
 int get_code_line(head_ptr_t head, int idx);
@@ -94,8 +86,8 @@ char* get_code_label(head_ptr_t head, int idx);
 void set_code_label(head_ptr_t head, int idx, char* label);
 int get_code_toDecode(head_ptr_t head, int idx);
 void set_code_toDecode(head_ptr_t head, int idx, int toDecode);
-enum bool get_code_isExtern(head_ptr_t head, int idx);
-void set_code_isExtern(head_ptr_t head, int idx, enum bool isExtern);
+bool get_code_isExtern(head_ptr_t head, int idx);
+void set_code_isExtern(head_ptr_t head, int idx, bool isExtern);
 addr_method get_code_type(head_ptr_t head, int idx);
 void set_code_type(head_ptr_t head, int idx, addr_method type);
 void symbol_init(symbol_ptr_t);
@@ -133,6 +125,12 @@ void print_head_code_bin(head_ptr_t arr);
 void print_symbols(head_ptr_t arr);
 void print_data(head_ptr_t arr);
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+#endif
+=======
+>>>>>>> 22d46a4 (fix warnings)
 unsigned int base_to_binary(base_instruction_ptr_t inst);
 unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst);
 unsigned int direct_to_binary(direct_instruction_ptr_t inst);
@@ -199,4 +197,9 @@ void *get_bin_by_type(image_ptr_t img);
 
 
 
+<<<<<<< HEAD
 #endif
+=======
+#endif
+>>>>>>> 2cef01f (fix warnings)
+>>>>>>> 22d46a4 (fix warnings)

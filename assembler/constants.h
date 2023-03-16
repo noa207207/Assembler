@@ -2,7 +2,6 @@
 #define CONSTANTS_H
 
 #include "string.h"
-#include "data_structure.h"
 
 #define MAX_LINE_LENGTH 81
 #define MAX_LABEL_LENGTH 31
@@ -56,9 +55,7 @@
 #define DIRECT_INSTRUCTION_ERA_MASK  0x3
 #define DIRECT_INSTRUCTION_ERA_SHIFT 0
 
-typedef struct head *head_ptr_t;
-
-typedef enum bool{
+typedef enum{
     False,
     True
 } bool;
@@ -87,7 +84,7 @@ typedef enum {
     OPCODE_SIZE
 } opcode;
 
-typedef enum addr_method{
+typedef enum{
     IMMEDIATE,
     DIRECT,
     JMP_PARAM, 

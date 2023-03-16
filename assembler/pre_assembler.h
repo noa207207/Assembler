@@ -3,7 +3,6 @@
 
 
 #include "constants.h"
-#include <stdbool.h>
 
 #define MAX_MACRO_LENGTH 20
 #define MAX_MACRO_INST 100 /* Maximum length of content assumed. */

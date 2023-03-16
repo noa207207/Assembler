@@ -82,28 +82,28 @@ char* skip_word(char* str) {
 void remove_end_spaces(char *str)
 {
     int len = strlen(str);
-    int i, j;
+    int i;
 
-    for (j = len-1; j >= 0 && isspace(str[j]); j--);
-    str[j+1] = '\0';
+    for (i = len-1; i >= 0 && isspace(str[i]); i--);
+    str[i+1] = '\0';
 }
 
 void removeSpacesAndTabs(char *str) {
     int len = strlen(str);
     int i, j;
 
-    // Remove spaces and tabs from the beginning of the string
+    /* Remove spaces and tabs from the beginning of the string */ 
     for (i = 0; isspace(str[i]); i++);
     if (i > 0) {
         memmove(str, str+i, len-i+1);
         len -= i;
     }
 
-    // Remove spaces and tabs from the end of the string
+    /* Remove spaces and tabs from the end of the string */ 
     for (j = len-1; j >= 0 && isspace(str[j]); j--);
     str[j+1] = '\0';
 
-    // Remove spaces and tabs before commas
+    /* Remove spaces and tabs before commas */ 
     for (i = 0; i < len; i++) {
         if (str[i] == ',' && isspace(str[i-1])) {
             for (j = i-1; j >= 0 && isspace(str[j]); j--);
@@ -112,7 +112,7 @@ void removeSpacesAndTabs(char *str) {
         }
     }
 
-    // Remove spaces and tabs after commas
+    /* Remove spaces and tabs after commas */ 
     for (i = 0; i < len; i++) {
         if (str[i] == ',' && isspace(str[i+1])) {
             for (j = i+1; j < len && isspace(str[j]); j++);
@@ -121,7 +121,7 @@ void removeSpacesAndTabs(char *str) {
         }
     }
 
-    // Ensure there is only one space between words (replace tabs with spaces)
+    /* Ensure there is only one space between words (replace tabs with spaces) */ 
     for (i = 0; i < len-1; i++) {
         if (isspace(str[i]) && (isspace(str[i+1]) || str[i+1] == '\t')) {
             str[i] = ' ';
@@ -150,8 +150,6 @@ void delete_spaces(char* p) {
 }
 
 void delete_new_line(char* p) {
-    int i = 0, count = 0;
-    bool str_flag = False;
     if (p[strlen(p) - 1] == '\n')
         p[strlen(p) - 1] = 0;
 }

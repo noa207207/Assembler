@@ -42,10 +42,8 @@ bool err_label(head_ptr_t headPtr, char* original_line, int label_len, char* lin
 /* Checks if the label is correct. Assumes line has a label. */
 bool errors_in_label_format(int label_len, char* line) {
     char* ptr;
-    bool errors;
     int i, length, reg;
 
-    errors = False;
     i = 0;
     ptr = line;
 
@@ -130,12 +128,10 @@ bool errors_in_data_line(char* original_line, char* line, int lineNumber, int op
     if (op == STRING) {
         if (ptr[i++] != '\"')
             errors = True;
-
-        while (ptr[i] != '\"' && ptr[i]) {
-            if (!(ptr[i] > 0 && ptr[i] < MAX_ALNUM))
-                errors = True;
+        
+         while (ptr[i] != '\"' && ptr[i])
             i++;
-        }
+
         if (!ptr[i])
             errors = True;
 
@@ -171,15 +167,6 @@ bool errors_in_data_line(char* original_line, char* line, int lineNumber, int op
 
 int count_parameters(char *str)
 {
-    // int count = 0;
-    // char *token;
-    // token = strtok(str, ",");
-    // while (token != NULL) {
-    //     count++;
-    //     token = strtok(NULL, ",");
-    // }
-    // return count;
-
     int count = 0;
     char *token;
     token = strtok(str, ", ");
@@ -192,17 +179,21 @@ int count_parameters(char *str)
 
 bool errors_in_addr_method(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op)
 {
-    if (get_dst_addr(instruction) == IMMEDIATE)
-        ERR_IMMEDIATE(second_word, lineNumber, original_line)
-    else if (get_dst_addr(instruction) == DIRECT)
-        ERR_DIRECT(second_word, lineNumber, original_line)
-    
-    if (first_word) {
-        if (get_src_addr(instruction) == IMMEDIATE)
-            ERR_IMMEDIATE(first_word, lineNumber, original_line)
-        else if (get_src_addr(instruction) == DIRECT)
-            ERR_DIRECT(line, lineNumber, original_line)
+    if (get_dst_addr(instruction) == IMMEDIATE) {
+        ERR_IMMEDIATE(second_word, lineNumber, original_line);
+    } else if (get_dst_addr(instruction) == DIRECT) {
+            ERR_DIRECT(second_word, lineNumber, original_line);
     }
+        
+    if (first_word) {
+        if (get_src_addr(instruction) == IMMEDIATE) {
+            ERR_IMMEDIATE(first_word, lineNumber, original_line); 
+        } else if (get_src_addr(instruction) == DIRECT) {
+            ERR_DIRECT(line, lineNumber, original_line);
+        }
+    }
+
+
     if (!is_legal_lba(get_opcode(instruction), get_src_addr(instruction), get_dst_addr(instruction))) {                                                                   \
             printf("Error on line %d: %sInvalid addressing method.\n", lineNumber, original_line);
             return True;                                                 
@@ -242,26 +233,12 @@ int errors_two_operands_inst(char* original_line, char* line, char* first_word, 
 
     CONSECUTIVE_COMMAS(line, lineNumber, original_line);
 
-    /* REG_DIRECT has already been checked. DIRECT will be checked later. */
-    // if (get_src_addr(instruction) == IMMEDIATE) {
-    //     ERR_IMMEDIATE(first_word, lineNumber, original_line)
-    // } else if (get_src_addr(instruction) == DIRECT) {
-    //     ERR_DIRECT(line, lineNumber, original_line)
-    // }
-
-    // if (get_dst_addr(instruction) == IMMEDIATE) {
-    //     ERR_IMMEDIATE(second_word, lineNumber, original_line)
-    // } else if (get_dst_addr(instruction) == DIRECT) {
-    //     ERR_DIRECT(second_word, lineNumber, original_line)
-    // }
-    // INVALID_ADDR_METHOD(get_opcode(instruction), get_src_addr(instruction), get_dst_addr(instruction), lineNumber, original_line)
     return err;
 }
 
 bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op)
 {
     ERR_JMP(line, lineNumber, original_line);
-    // INVALID_ADDR_METHOD(op, get_src_addr(instruction), get_dst_addr(instruction), line, original_line);
     return False;
 }
 
