@@ -304,7 +304,7 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
             err = False;
         break;
     case LEA:
-        if ((src_mtd != DIRECT && src_mtd != JMP) || dst_mtd == IMMEDIATE)
+        if ((src_mtd != DIRECT && src_mtd != JMP_PARAM) || dst_mtd == IMMEDIATE)
             err = False;
         break;
     case PRN:

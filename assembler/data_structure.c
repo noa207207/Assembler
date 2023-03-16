@@ -524,6 +524,7 @@ void insert_data_img(head_ptr_t arr, unsigned int data, int line) {
     }
     arr->data_image[idx].line = line;
     arr->data_image[idx].bin = bin_ptr;
+    arr->data_image[idx].type = SYNGEL_DATA;
     arr->dataUsed++;
 }
 
@@ -816,7 +817,7 @@ void data_to_binary(image_ptr_t img, int num_data_lines, char** binary_str)
     memset(*binary_str, 0, (num_data_lines * 22) + 1); /* initialize binary_str with null bytes */
 
      for (i = 0; i < num_data_lines; i++) {
-        sprintf(line_num, "%04d\t\t", get_image_line(img, i));
+        sprintf(line_num, "%04d  ", get_image_line(img, i));
         strcat(*binary_str, line_num);
         binary_to_pattern(get_single_data_value(img, i), pattern);
         strcat(*binary_str, pattern);
