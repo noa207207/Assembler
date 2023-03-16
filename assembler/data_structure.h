@@ -124,13 +124,6 @@ int get_direct_value(head_ptr_t h, int idx);
 void print_head_code_bin(head_ptr_t arr);
 void print_symbols(head_ptr_t arr);
 void print_data(head_ptr_t arr);
-
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-#endif
-=======
->>>>>>> 22d46a4 (fix warnings)
 unsigned int base_to_binary(base_instruction_ptr_t inst);
 unsigned int immidiate_to_binary(immidiate_instruction_ptr_t inst);
 unsigned int direct_to_binary(direct_instruction_ptr_t inst);
@@ -195,11 +188,4 @@ void set_second_param(line_info_ptr_t line, addr_method second_param);
 
 void *get_bin_by_type(image_ptr_t img);
 
-
-
-<<<<<<< HEAD
 #endif
-=======
-#endif
->>>>>>> 2cef01f (fix warnings)
->>>>>>> 22d46a4 (fix warnings)
