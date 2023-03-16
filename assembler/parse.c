@@ -73,7 +73,10 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
         }
         targetAddr = operandMethod(line, &instruction, True, NULL, NULL);
 
-        errors_in_addr_method(original_line, line, NULL, line, line_num, instruction, op);
+        if (errors_in_addr_method(original_line, line, NULL, line, line_num, instruction, op)) {
+            *errorsFound = True;
+            return inst_count;
+        }
 
         insert_base_instruction(headPtr, get_opcode(instruction), 0, targetAddr, A, inst_count++, 0, 0);
         inst_count = switch_and_insert(headPtr, instruction, inst_count, targetAddr, True);

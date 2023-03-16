@@ -40,7 +40,7 @@ void process_file(char* filename)
 }
 int main()
 {
-    char* filename = "prog";
+    char* filename = "errorsFromGit";
 
     process_file(filename);
 

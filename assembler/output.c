@@ -21,7 +21,6 @@ void create_output(head_ptr_t headPtr, char* filename) {
     create_object(headPtr, objectFile);
 
     create_entry(headPtr, entryFile);
-    printf("blettt");
 
     create_external(headPtr, externalFile);
 
@@ -83,7 +82,6 @@ void create_external(head_ptr_t headPtr, char* externalFile) {
     bool isEmpty;
 
     codeLength = get_code_used(headPtr);
-    printf("len = %d\n", codeLength);
     isEmpty = True;
 
     FILE_CREATE(filePointer, externalFile)

@@ -297,7 +297,7 @@ bool errors_index(char* str) {
 }
 
 int is_invalid_operand_num(char* str, opcode op) {
-    if (opcode_in_group(op, second_group, 6))
+    if (opcode_in_group(op, second_group, 6) || opcode_in_group(op, jmp_group, 3))
         return count_parameters(str) == 1 ? 0 : 1;
     if (opcode_in_group(op, first_group, 5))
         return count_parameters(str) == 2 ? 0 : 1;
