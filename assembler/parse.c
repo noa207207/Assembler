@@ -13,7 +13,6 @@ opcode second_group[6] = {NOT, CLR, INC, DEC, RED, PRN};
 opcode third_group[2] = {RTS, STOP};
 opcode jmp_group[3] = {JMP, BNE, JSR};
 
-/* This function parses a data line, and add it into the Data Image table. It returns the updated data-count. It assumes no errors in line. */
 int parse_data_line(head_ptr_t headPtr, char* line, int data_count, opcode op) {
     int i, idx, line_num = data_count, arrayLength;
     if (op == STRING) {
@@ -35,18 +34,6 @@ int parse_data_line(head_ptr_t headPtr, char* line, int data_count, opcode op) {
     return line_num;
 }
 
-int get_num_operands(char *line)
-{
-    unsigned int i = 0;
-    char *token = strtok(line, ",");
-    while (token && *token && (strchr(token, ',') != NULL)) {
-        ++i;
-        token = strtok(NULL, ",");
-    }
-    return i;
-}
-
-/* Parses an instruction line, returns the updated instruction-count. */
 int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_cpy, char* line, char* line_copy, int inst_count, opcode op, bool* errorsFound, int line_num) {
     addr_method sourceAddr, targetAddr;
     char *token, *first_word;
@@ -151,7 +138,6 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
     return inst_count;
 }
 
-/* Returns True if the line is a comment. Otherwise returns False. */
 bool is_comment(char* line) {
     char* p = skip_spaces(line);
     if (*p == ';')
@@ -159,7 +145,6 @@ bool is_comment(char* line) {
     return False;
 }
 
-/* Returns array length. Assumes no errors in line and at least one value in array. */
 int getArrayLength(char* line) {
     int i = 0, count = 0;
     while (line[i] != '\n' && line[i]) {
@@ -170,7 +155,6 @@ int getArrayLength(char* line) {
     return count + 1;
 }
 
-/* Returns a pointer to the next number in the string. It assumes that a correct string of type ".data" is received (array). */
 char* nextNum(char* line) {
     int i = 0;
     while (line[i] != ',' && line[i] != '\n')
@@ -178,7 +162,6 @@ char* nextNum(char* line) {
     return line + i + 1;
 }
 
-/* Checks if an operand is an immediate, it assumes so if first character is '#'. It also updates the line_info pointer. */
 bool isImmediate(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == '#') {
@@ -195,7 +178,6 @@ bool isImmediate(char* arg, line_info_ptr_t instruction, bool isDst) {
     return False;
 }
 
-/* The function returns True if the operand is of type Direct. It assumes so if it's not a register/index/immediate and does not check errors. It also updates the line_info pointer.*/
 bool isDirect(char* arg, line_info_ptr_t instruction, bool isDst)
 {
     if (isDst) {
@@ -244,11 +226,9 @@ bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_
     return True;
 }
 
-/* Returns true if correct register, within range 0EMPTY5. It also updates the line_info pointer.*/
 bool isRegister(char* arg, line_info_ptr_t instruction, bool isDst) {
     int i = 0;
     if (arg[i++] == 'r') {
-        /* Error check? */
         if (!isdigit(arg[i]) || !(atoi(arg + i) >= 0 && atoi(arg + i) <= MAX_REGISTERS))
             return False;
         if (arg[i + 1] && arg[i + 2])
@@ -267,7 +247,6 @@ bool isRegister(char* arg, line_info_ptr_t instruction, bool isDst) {
     return False;
 }
 
-/* Returns the address method of string arg. Assumes arg is not a NULL pointer. */
 addr_method operandMethod(char* arg, line_info_ptr_t *instruction, bool isDst, line_info_ptr_t *first_param_info, line_info_ptr_t *second_param_info) {
     if (isRegister(arg, *instruction, isDst))
         return REG_DIRECT;
@@ -324,20 +303,3 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
     return err;
 }
 
-/* The function returns how many additional words are needed according to the addressing methods of source/target. */
-int howManyWords(addr_method sourceAddr, addr_method targetAddr) {
-    if (sourceAddr == REG_DIRECT && targetAddr == REG_DIRECT)
-        return ZERO_WORDS;
-    else if ((sourceAddr == IMMEDIATE && targetAddr == REG_DIRECT) || (sourceAddr == REG_DIRECT && targetAddr == IMMEDIATE)) {
-        return ONE_WORD;
-    } else if (sourceAddr == IMMEDIATE && targetAddr == IMMEDIATE) {
-        return TWO_WORDS_IMMEDIATE;
-    } else if ((sourceAddr == REG_DIRECT && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) || (targetAddr == REG_DIRECT && (sourceAddr == DIRECT || sourceAddr == JMP_PARAM))) {
-        return TWO_WORDS;
-    } else if ((sourceAddr == IMMEDIATE && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) || (targetAddr == IMMEDIATE && (sourceAddr == DIRECT || sourceAddr == JMP_PARAM))) {
-        return THREE_WORDS;
-    } else if ((sourceAddr == DIRECT || sourceAddr == JMP_PARAM) && (targetAddr == DIRECT || targetAddr == JMP_PARAM)) {
-        return FOUR_WORDS;
-    }
-    return EMPTY; /* Should never reach here. */
-}

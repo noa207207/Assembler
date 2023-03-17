@@ -15,32 +15,54 @@ static head_ptr_t headPointer;
 
 void process_file(char* filename)
 {
-    char *updated_filename, *s;
+    char *updated_filename;
+   
    
     updated_filename = str_with_ext(filename, ".as");
 
-    macro_remove(updated_filename, filename);
+    EXISTENT_FILE(updated_filename)
+
+    PREASSEMBLER(updated_filename, filename)
+
     headPointer = head_init(1, 1, 1);
 
     free(updated_filename);
     updated_filename = str_with_ext(filename, ".am");
 
-    process_first_pass(headPointer, updated_filename);
-    process_second_pass(headPointer, updated_filename);
+    printf("Assembler is processing file \"%s\". Beginning with first pass..\n", updated_filename);
+    if (process_first_pass(headPointer, updated_filename)) {
+        printf("Errors found in file \"%s\" during first pass!\n\n", updated_filename);
+        ERROR_FREE_AND_REMOVE(updated_filename, headPointer)
+        return;
+    }
 
-    print_head_code_bin(headPointer);
+    printf("First pass finished with no errors.\nContinuing with second pass..\n");
+
+    if (process_second_pass(headPointer, updated_filename)) {
+        printf("Errors found in file \"%s\" during second pass!\n\n", updated_filename);
+        ERROR_FREE_AND_REMOVE(updated_filename, headPointer)
+        return;
+    }
+
+    printf("Second pass finished with no errors.\nCreating output files..\n");
 
     create_output(headPointer, filename);
-    instructions_to_binary(get_code_image(headPointer), get_code_used(headPointer), &s);
+
+    printf("Output files successfully created for file \"%s\"!\n\n", updated_filename);
+
+    print_head_code_bin(headPointer);
 
     print_symbols(headPointer);
 
     print_data(headPointer);
 
+    free(updated_filename);
+    free_head(headPointer);
+
 }
 int main()
 {
-    char* filename = "errorsFromGit";
+    char* filename = "prog";
 
     process_file(filename);
 

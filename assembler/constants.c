@@ -60,9 +60,8 @@ bool opcode_in_group(opcode op, opcode group[], int count)
     int i;
     for (i = 0; i < count; i++) {
         if (op == group[i]){
-    return True;
-    }
-            
+            return True;
+        }   
     }
     return False;
 }

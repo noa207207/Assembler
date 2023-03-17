@@ -65,30 +65,52 @@
         return True;                                                                \
     }
 
+/* Check if opcode is in opcodes range */
 bool err_in_opcode(head_ptr_t headPtr, char* original_line, opcode op, int lineNumber);
+
+/* Check label validation */
 bool err_label(head_ptr_t headPtr, char* original_line, int label_len, char* line, int lineNumber, bool is_entry);
+
+/* Checks if the label is correct. Assumes line has a label. */
 bool errors_in_label_format(int label_len, char* line);
-bool errors_in_extern_label(head_ptr_t headPtr, char* original_line, char* line, int lineNumber);
-bool is_duplicate_label(head_ptr_t, char *, int);
+
+/* count instruction line params num */
 int count_parameters(char *str);
 
+/* Detect errors in a data line, where line points to first element after ".string"/".data". */
 bool errors_in_data_line(char *, char *, int, int opcode);
-bool errors_zero_operands_inst(char *, char *, int, opcode);
-int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
-int check_one_operand_num(char* str, opcode op);
-int errors_two_operands_inst(char *, char *, char *, char *, int, line_info_ptr_t, opcode op);
-int check_two_operand_num(char* str, opcode op);
-bool error_jmp_group(char* original_line);
-bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
-bool errors_in_addr_method(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op);
-bool errors_immediate(char *);
-bool errors_index(char *);
-int is_invalid_operand_num(char *, opcode);
-bool is_one_operand_num(char* str, opcode op);
-bool is_two_operand_num(char* str, opcode op);
 
+/* Detect errors in an instruction line with zero operands. */
+bool errors_zero_operands_inst(char *, char *, int, opcode);
+
+/* Detect errors in an instruction line with one operand */
+int errors_one_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
+
+/* Detect errors in an instruction line with two operands */
+int errors_two_operands_inst(char *, char *, char *, char *, int, line_info_ptr_t, opcode op);
+
+/* Detect and print errors in an jmp with params instruction line */
+bool error_jmp_group(char* original_line);
+
+/* Detect errors in an jmp with params instruction line */
+bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
+
+/* Detect and print errors after decoding address method */
+bool errors_in_addr_method(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op);
+
+/* Check immediate format validation */
+bool errors_immediate(char *);
+
+/* Detect and print error is num operands not match opcode */
+int is_invalid_operand_num(char *, opcode);
+
+/* Checks if a string is a correct number - starts with '+' or '-' followed by digits or all digits. */
 bool isCorrectNum(char *);
+
+/* Check if there are two (or more) consecutive commas in the string provided. */
 bool isConsecutiveComma(char *);
+
+/* Check if the filename provided exists, otherwise returns False. */
 bool isExistentFile(char *);
 
 #endif

@@ -7,7 +7,6 @@
 #include "utils.h"
 
 
-/* Receives a file with ".as" extension and creates a new one with ".am" extension, with the macros replaced.*/
 int macro_remove(char* filename, char* base_filename) {
     int cmd_length, idx, macro_status;
     bool macroFlag, replacedFlag;
@@ -72,14 +71,12 @@ int macro_remove(char* filename, char* base_filename) {
     return 0;
 }
 
-/* Initializes the macro array. */
 void init_macro_array(macroArray* arr, int initial_size) {
     arr->array = (macro*)malloc_with_monitor(initial_size * sizeof(macro));
     arr->used = 0;
     arr->size = initial_size;
 }
 
-/* Handles insertion into macro array.*/
 void insert_macro_array(macroArray* arr, char* name, char* content) {
     if (arr->used == arr->size) {
         arr->size *= 2;
@@ -92,7 +89,6 @@ void insert_macro_array(macroArray* arr, char* name, char* content) {
     arr->used++;
 }
 
-/* Frees all memory allocations in macro array. */
 void free_macro_array(macroArray* arr) {
     int idx;
     for (idx = 0; idx < arr->used; idx++) {
@@ -104,7 +100,6 @@ void free_macro_array(macroArray* arr) {
     arr->used = arr->size = 0;
 }
 
-/* This function receives the string, a flag and the command length, and returns the current "macro status". */
 int current_macro_status(char* str, bool macroFlag, int cmdLength) {
     if (strncmp(str, "macro", strlen("macro")) == 0) { /* First word is 'macro'*/
         return MACRO_START;
@@ -115,3 +110,4 @@ int current_macro_status(char* str, bool macroFlag, int cmdLength) {
     }
     return MACRO_NONE;
 }
+

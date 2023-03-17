@@ -6,7 +6,6 @@
 #include <string.h>
 #include "constants.h"
 
-/* Joins two strings together. This allocates memory, and needs to be freed after use. */
 char* str_with_ext(char* str1, char* ext) {
     char* united_string = (char*)malloc_with_monitor(strlen(str1) + strlen(ext) + 1);
     strcpy(united_string, str1);
@@ -14,7 +13,6 @@ char* str_with_ext(char* str1, char* ext) {
     return united_string;
 }
 
-/* Malloc with monitor - if memory allocation is failed, exits the program. */
 void* malloc_with_monitor(long size) {
     void* p = malloc(size);
     if (!p) {
@@ -24,7 +22,6 @@ void* malloc_with_monitor(long size) {
     return p;
 }
 
-/* Realloc with monitor - if memory reallocation is failed, exits the program. */
 void* realloc_with_monitor(void* start, long size) {
     void* p = realloc(start, size);
     if (!p) {
@@ -34,7 +31,6 @@ void* realloc_with_monitor(void* start, long size) {
     return p;
 }
 
-/* Returns pointer right after spaces and tabs. */
 char* skip_spaces(char* str) {
     int i = 0;
     while (str[i] == ' ' || str[i] == '\t')
@@ -42,7 +38,6 @@ char* skip_spaces(char* str) {
     return str + i;
 }
 
-/* Counts length of word (until space-character or NULL character is reached). */
 int word_length(char* str) {
     int i = 0;
     for (; !isspace(str[i]) && str[i]; i++)
@@ -50,7 +45,6 @@ int word_length(char* str) {
     return i;
 }
 
-/* Counts length of line (until \n or NULL character is reached). */
 int count_line_length(char* p) {
     int i = 0;
     while (p[i] != '\n' && p[i])
@@ -58,7 +52,6 @@ int count_line_length(char* p) {
     return i + 1;
 }
 
-/* Returns true if the string received is empty. */
 bool empty_string(char* str) {
     char* p = skip_spaces(str);
     if (*p == '\n' || !*p)
@@ -66,7 +59,6 @@ bool empty_string(char* str) {
     return False;
 }
 
-/* Returns a pointer right after the current word. */
 char* skip_word(char* str) {
     int idx = 0;
     while (!isspace(str[idx]) && str[idx] && str[idx] != ',') {
@@ -74,10 +66,6 @@ char* skip_word(char* str) {
     }
     return str + idx;
 }
-
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 
 void remove_end_spaces(char *str)
 {
@@ -132,7 +120,6 @@ void removeSpacesAndTabs(char *str) {
     }
 }
 
-/* Deletes the spaces, tabs and newline in a given string. */
 void delete_spaces(char* p) {
     int i = 0, count = 0;
     bool str_flag = False;
@@ -149,17 +136,10 @@ void delete_spaces(char* p) {
     p[count] = '\0'; /* End the string. */
 }
 
+
 void delete_new_line(char* p) {
     if (p[strlen(p) - 1] == '\n')
         p[strlen(p) - 1] = 0;
 }
 
-/* Returns hist, given a number. */
-int getHist(int value) {
-    return value % 16;
-}
 
-/* Returns base, given a number. */
-int getBase(int value) {
-    return value - getHist(value);
-}

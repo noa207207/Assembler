@@ -9,8 +9,7 @@
 #include "utils.h"
 #include "constants.h"
 
-/* The function is in charge of first pass. It returns False if no errors were found, otherwise returns True. */
-int process_first_pass(head_ptr_t headPtr, char* filename) {
+bool process_first_pass(head_ptr_t headPtr, char* filename) {
     int inst_count, data_count, shift, line_num;
     char line[MAX_LINE_LENGTH], label[MAX_LABEL_LENGTH], line_copy[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH], wordPointer_cpy[MAX_LINE_LENGTH];
     char* wordPointer;
@@ -110,7 +109,6 @@ int process_first_pass(head_ptr_t headPtr, char* filename) {
     return errorsFound;
 }
 
-/* The function checks if there's a label in line. If so, it copies it into label, and returns the index of the character after ':'. Otherwise returns -1. */
 int label_check(char* line, char* label) {
     char* ptr = line;
     int i = 0;
@@ -125,7 +123,6 @@ int label_check(char* line, char* label) {
     }
     return -1;
 }
-/* Returns number of operation (first word). If it's incorrect then it returns -1. */
 opcode firstWord(char* line) {
     int count = 0, i;
     for (i = 0; !isspace(line[i]) && line[i] != '\n' && line[i] != ','; i++)

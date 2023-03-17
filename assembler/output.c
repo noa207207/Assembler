@@ -10,7 +10,6 @@
 #include "parse.h"
 #include "utils.h"
 
-/* Creates 3 output files: Object File, Entry File, External File. */
 void create_output(head_ptr_t headPtr, char* filename) {
     char *objectFile, *entryFile, *externalFile;
 
@@ -29,7 +28,6 @@ void create_output(head_ptr_t headPtr, char* filename) {
     free(externalFile);
 }
 
-/* Creates an object file. */
 void create_object(head_ptr_t headPtr, char* objectFile) {
     FILE* filePointer;
     int codeLines, dataLines;
@@ -53,7 +51,6 @@ void create_object(head_ptr_t headPtr, char* objectFile) {
     free(code_binary);
 }
 
-/* If labels declared as ".entry" exist, creates an entry file. */
 void create_entry(head_ptr_t headPtr, char* entryFile) {
     FILE* filePointer;
     int tableLength, idx;
@@ -65,7 +62,7 @@ void create_entry(head_ptr_t headPtr, char* entryFile) {
     FILE_CREATE(filePointer, entryFile)
 
     for (idx = 0; idx < tableLength; idx++) {
-        if (get_symbol_isEntry(headPtr, idx)) {
+        if (get_symbol_is_entry(headPtr, idx)) {
             isEmpty = False;
             fprintf(filePointer, "%s\t\t%d\n", get_symbol_name(headPtr, idx), get_symbol_value(headPtr, idx));
         }
@@ -75,7 +72,6 @@ void create_entry(head_ptr_t headPtr, char* entryFile) {
         remove(entryFile);
 }
 
-/* If labels declared as ".extern" exist, creates an extern file. */
 void create_external(head_ptr_t headPtr, char* externalFile) {
     FILE* filePointer;
     int codeLength, idx;
@@ -87,7 +83,7 @@ void create_external(head_ptr_t headPtr, char* externalFile) {
     FILE_CREATE(filePointer, externalFile)
 
     for (idx = 0; idx < codeLength; idx++) {
-        if (get_code_isExtern(headPtr, idx)) {
+        if (get_code_is_extern(headPtr, idx)) {
             isEmpty = False;
             fprintf(filePointer, "%s\t\t%d\n", get_direct_label(headPtr, idx), get_code_line(headPtr, idx));
         }

@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "second_pass.h"
 
-/* The function is in charge of the second pass. It returns False if no errors were found, and updates the headPointer accordingly. */
 bool process_second_pass(head_ptr_t headPtr, char* filename) {
     char line[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH];
     char wordPointer_cpy[MAX_LABEL_LENGTH];
@@ -72,7 +71,6 @@ bool process_second_pass(head_ptr_t headPtr, char* filename) {
     return errorsFound;
 }
 
-/* The function searches the symbol table for the label, and adds the entry attribute to it. Returns False if not found in table or if duplicate external label is found. */
 bool insert_entry(head_ptr_t headPtr, char* label, char* line, int lineNumber) {
     int idx, arrLength;
     bool insertedFlag;
@@ -82,11 +80,11 @@ bool insert_entry(head_ptr_t headPtr, char* label, char* line, int lineNumber) {
 
     for (idx = 0; idx < arrLength; idx++) {
         if (!strcmp(get_symbol_name(headPtr,idx), label)) {
-            if (get_symbol_isExternal(headPtr,idx)) {
+            if (get_symbol_is_external(headPtr,idx)) {
                 printf("Error on line %d: %sLabel declared as ENTRY and EXTERN simultaneously.\n", lineNumber, line);
                 return False;
             }
-            set_symbol_isEntry(headPtr, idx, True);
+            set_symbol_is_entry(headPtr, idx, True);
 
             insertedFlag = True;
         }
@@ -98,7 +96,6 @@ bool insert_entry(head_ptr_t headPtr, char* label, char* line, int lineNumber) {
     return False;
 }
 
-/* Updates the code image with BASE/HIST. It returns True if errors were found, and False upon success. */
 bool update_code_symbols(head_ptr_t headPtr) {
     int i, length, value;
     bool errors, is_extern;
@@ -108,17 +105,17 @@ bool update_code_symbols(head_ptr_t headPtr) {
 
     for (i = 0; i < length; i++) {
         label = get_direct_label(headPtr, i);
-        if (get_code_toDecode(headPtr, i)) {
+        if (get_code_to_decode(headPtr, i)) {
                 value = find_symbol_value(headPtr, label);
                 if (value != -1) {
                     set_direct_value(headPtr, i, value);
                 }
                 else
                     errors = True; 
-                is_extern = find_symbol_is_extern(headPtr, label);
+                is_extern = is_symbol_extern(headPtr, label);
                 if(is_extern){
                     set_direct_era(headPtr, i, E);
-                    set_code_isExtern(headPtr, i, True);
+                    set_code_is_extern(headPtr, i, True);
                 }
                     
                 else
@@ -128,7 +125,6 @@ bool update_code_symbols(head_ptr_t headPtr) {
     return errors;
 }
 
-/* Returns BASE or HIST of symbol. If symbol doesn't exist in symbol table, returns -1. */
 int find_symbol_value(head_ptr_t headPtr, char* symbol) {
     int i, length, value;
 
@@ -144,7 +140,7 @@ int find_symbol_value(head_ptr_t headPtr, char* symbol) {
     return -1; /* Not found. */
 }
 
-bool find_symbol_is_extern(head_ptr_t headPtr, char* symbol) {
+bool is_symbol_extern(head_ptr_t headPtr, char* symbol) {
     int i, length;
     bool is_extern;
 
@@ -152,7 +148,7 @@ bool find_symbol_is_extern(head_ptr_t headPtr, char* symbol) {
 
     for (i = 0; i < length; i++) {
         if (!strcmp(get_symbol_name(headPtr,i), symbol)) {
-            is_extern = get_symbol_isExternal(headPtr,i);
+            is_extern = get_symbol_is_external(headPtr,i);
             return is_extern;
         }
     }
