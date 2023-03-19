@@ -50,21 +50,21 @@ void process_file(char* filename)
 
     printf("Output files successfully created for file \"%s\"!\n\n", updated_filename);
 
-    print_head_code_bin(headPointer);
-
-    print_symbols(headPointer);
-
-    print_data(headPointer);
-
     free(updated_filename);
     free_head(headPointer);
 
 }
-int main()
-{
-    char* filename = "test1";
 
-    process_file(filename);
+int main(int argc, char* argv[]) {
+    int i;
 
+    if (argc == 1) {
+        printf("Error: Invalid number of arguments.\n");
+        exit(0);
+    }
+    for (i = 1; i < argc; i++) {
+        process_file(argv[i]);
+    }
+    printf("All files have been processed!\n");
     return 0;
 }

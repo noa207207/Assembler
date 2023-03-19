@@ -26,7 +26,7 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
 
     while (fgets(line, MAX_LINE_LENGTH, filePointer)) {
         
-        if (line[strlen(line) - 1] != '\n' && line[strlen(line)] != EOF) {
+        if (line[strlen(line) - 1] != '\n' && line[strlen(line)] != EOF && line[strlen(line)] != 0) {
             ERR_LONG_LINE(++line_num, line)
             
         /* Discard the remaining characters in the line */ 

@@ -82,7 +82,7 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
         }
             
         if (targetAddr == JMP_PARAM) {
-                if (errors_jmp_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
+                if (errors_jmp_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op, first_param_p, second_param_p)) {
                     *errorsFound = True;
                     return inst_count;
                 }
@@ -113,7 +113,8 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
 
     if (opcode_in_group(op, first_group, 5)) { /* If the operation requires two operand */        
         token = strtok(line, ",");
-        sourceAddr = operandMethod(token, &instruction, False, NULL, NULL);
+        if (token != NULL)
+            sourceAddr = operandMethod(token, &instruction, False, NULL, NULL);
         first_word = token;
         token = strtok(NULL, ",");
         if (token != NULL)
@@ -211,12 +212,18 @@ bool is_jmp_param(char* arg, line_info_ptr_t instruction, bool isDst, line_info_
             labelLength = i;
             line = arg + labelLength + 1;
             token = strtok(line, ",");
-            first_param_m = operandMethod(token, first_param_info, False, NULL, NULL);
+            if (token != NULL) {
+                first_param_m = operandMethod(token, first_param_info, False, NULL, NULL);
+                strcpy(get_jmp_first_p(*first_param_info), token);
+                set_first_param(instruction, first_param_m);
+            }
+                
             token = strtok(NULL, ")");
-            if (token != NULL)
+            if (token != NULL) {
                 second_param_m = operandMethod(token, second_param_info, True, NULL, NULL);
-            set_first_param(instruction, first_param_m);
-            set_second_param(instruction, second_param_m);
+                strcpy(get_jmp_sec_p(*second_param_info), token);
+                set_second_param(instruction, second_param_m);
+            }
 
      } else {
         *first_param_info = NULL;
@@ -294,6 +301,7 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
     case PRN:
         if (src_mtd != 0)
             is_legal = False;
+        break;
     case RTS:
     case STOP:
         if (src_mtd != 0 || dst_mtd != 0)
@@ -302,6 +310,7 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
     default:
         is_legal = False;
     }
+
     return is_legal;
 }
 

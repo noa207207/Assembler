@@ -147,7 +147,6 @@ bool errors_in_addr_method(char* original_line, char* line, char* first_word, ch
         }
     }
 
-
     if (!is_legal_lba(get_opcode(instruction), get_src_addr(instruction), get_dst_addr(instruction))) {                                                                   \
             printf("Error on line %d: %sInvalid addressing method.\n", lineNumber, original_line);
             return True;                                                 
@@ -187,9 +186,20 @@ int errors_two_operands_inst(char* original_line, char* line, char* first_word, 
     return err;
 }
 
-bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op)
+bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op, line_info_ptr_t first_param, line_info_ptr_t sec_param)
 {
     ERR_JMP(line, lineNumber, original_line);
+
+    if (get_dst_addr(sec_param) == IMMEDIATE) {
+        ERR_IMMEDIATE(get_jmp_sec_p(sec_param), lineNumber, original_line);
+    } else if (get_dst_addr(sec_param) == DIRECT) {
+            ERR_DIRECT(get_jmp_sec_p(sec_param), lineNumber, original_line);
+    }
+    if (get_src_addr(first_param) == IMMEDIATE) {
+        ERR_IMMEDIATE(get_jmp_first_p(first_param), lineNumber, original_line);
+    } else if (get_src_addr(first_param) == DIRECT) {
+            ERR_DIRECT(get_jmp_first_p(first_param), lineNumber, original_line);
+    }
     return False;
 }
 

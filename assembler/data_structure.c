@@ -83,7 +83,8 @@ struct line_info{
 
     char src_label[MAX_LABEL_LENGTH];
     char dst_label[MAX_LABEL_LENGTH];
-    char jmp_label[MAX_LABEL_LENGTH];
+    char jmp_first_param[MAX_LABEL_LENGTH];
+    char jmp_sec_param[MAX_LABEL_LENGTH];
 
     addr_method first_param;
     addr_method second_param;
@@ -114,7 +115,8 @@ line_info_ptr_t line_info_empty_init(void) {
         tmp->dst_imm = 0;
         memset(tmp->src_label, 0, MAX_LABEL_LENGTH);
         memset(tmp->dst_label, 0, MAX_LABEL_LENGTH);
-        memset(tmp->jmp_label, 0, MAX_LABEL_LENGTH);
+        memset(tmp->jmp_first_param, 0, MAX_LABEL_LENGTH);
+        memset(tmp->jmp_sec_param, 0, MAX_LABEL_LENGTH);
         tmp->first_param = 0;
         tmp->second_param = 0;
     }
@@ -515,8 +517,28 @@ int get_dst_reg(line_info_ptr_t line_info_ptr) {
     return line_info_ptr->dst_reg2;
 }
 
+int get_src_imm(line_info_ptr_t line_info_ptr) {
+    return line_info_ptr->src_imm;
+}
+
+int get_dst_imm(line_info_ptr_t line_info_ptr) {
+    return line_info_ptr->dst_imm;
+}
+
 char* get_dst_label(line_info_ptr_t line_info_ptr) {
     return line_info_ptr->dst_label;
+}
+
+char* get_src_label(line_info_ptr_t line_info_ptr) {
+    return line_info_ptr->src_label;
+}
+
+char* get_jmp_first_p(line_info_ptr_t line_info_ptr) {
+    return line_info_ptr->jmp_sec_param;
+}
+
+char* get_jmp_sec_p(line_info_ptr_t line_info_ptr) {
+    return line_info_ptr->jmp_sec_param;
 }
 
 addr_method get_first_param(line_info_ptr_t line_info_ptr) {

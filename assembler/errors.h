@@ -32,7 +32,8 @@
     }                                                                                        
 
 #define ERR_LONG_LINE(line, original)                                                                                               \
-        printf("Error on line %d: %sLine over length.\n", line, original); \
+        printf("Error on line %d: %s Line over length.\n", line, original); \
+        return True;                                                        \
 
 
 #define ERR_DIRECT(str, line, original)                                                                                               \
@@ -93,8 +94,7 @@ int errors_two_operands_inst(char *, char *, char *, char *, int, line_info_ptr_
 bool error_jmp_group(char* original_line);
 
 /* Detect errors in an jmp with params instruction line */
-bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op);
-
+bool errors_jmp_operand_inst(char* original_line, char* line, int lineNumber, line_info_ptr_t instruction, opcode op, line_info_ptr_t first_param, line_info_ptr_t sec_param);
 /* Detect and print errors after decoding address method */
 bool errors_in_addr_method(char* original_line, char* line, char* first_word, char* second_word, int lineNumber, line_info_ptr_t instruction, opcode op);
 
