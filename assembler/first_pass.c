@@ -14,14 +14,14 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
     char line[MAX_LINE_LENGTH], label[MAX_LABEL_LENGTH], line_copy[MAX_LINE_LENGTH], original_line[MAX_LINE_LENGTH], wordPointer_cpy[MAX_LINE_LENGTH];
     char* wordPointer;
     opcode op;
-    bool isLabel, errorsFound;
+    bool isLabel, errorsFound, tmp_error;
     FILE* filePointer;
     int prev_inst_count, prev_data_count;
     int c;
 
     inst_count = INITIAL_IC;
     data_count = line_num = 0;
-    isLabel = errorsFound = False;
+    isLabel = errorsFound = tmp_error = False;
     filePointer = fopen(filename, "r");
 
     while (fgets(line, MAX_LINE_LENGTH, filePointer)) {
@@ -42,7 +42,7 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
         
         prev_inst_count = inst_count;
         prev_data_count = data_count;
-        errorsFound = False;
+        tmp_error = False;
         isLabel = False;
         line_num++;
         if (empty_string(line) || is_comment(line)){
@@ -57,8 +57,9 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
 
         if ((shift = label_check(wordPointer, label)) != -1) {
             isLabel = True;
-            errorsFound = (err_label(headPtr, original_line, shift - 1, wordPointer, line_num, False));
-            if (errorsFound)
+            tmp_error = (err_label(headPtr, original_line, shift - 1, wordPointer, line_num, False));
+            errorsFound |= tmp_error;
+            if (tmp_error)
                 continue;
             wordPointer += shift;
             wordPointer = skip_spaces(wordPointer);
@@ -68,7 +69,9 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
         
         op = firstWord(wordPointer);
     
-        if (err_in_opcode(headPtr, original_line, op, line_num))
+        tmp_error = err_in_opcode(headPtr, original_line, op, line_num);
+        errorsFound |= tmp_error;
+        if (tmp_error)
             continue;
     
         wordPointer = skip_word(wordPointer);
@@ -81,17 +84,18 @@ bool process_first_pass(head_ptr_t headPtr, char* filename) {
         if (op == ENTRY) /* Second Pass deals with this case. */
             continue;
         if (op == DATA || op == STRING) {
-            errorsFound = (errors_in_data_line(original_line, wordPointer, line_num, op)) ? True : errorsFound;
-
-            if (errorsFound)
+            tmp_error = (errors_in_data_line(original_line, wordPointer, line_num, op)) ? True : errorsFound;
+            errorsFound |= tmp_error;
+            if (tmp_error)
                 continue;
             data_count = parse_data_line(headPtr, wordPointer, data_count, op);
             if (isLabel && data_count > prev_data_count)
                 insert_data_symbol(headPtr, label, prev_data_count, op);         
         }
         if (op == EXTERNAL) {
-            errorsFound = (err_label(headPtr, original_line, strlen(wordPointer_cpy), wordPointer_cpy, line_num, False));
-            if (errorsFound)
+            tmp_error = (err_label(headPtr, original_line, strlen(wordPointer_cpy), wordPointer_cpy, line_num, False));
+            errorsFound |= tmp_error;
+            if (tmp_error)
                 continue;
             insert_extern(headPtr, wordPointer, op);
             isLabel = False;

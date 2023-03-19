@@ -77,17 +77,20 @@ int parse_inst_line(head_ptr_t headPtr, char* original_line, char *wordPointer_c
 
         if (targetAddr != DIRECT && targetAddr != JMP_PARAM){
             INVALID_ADDR_METHOD(op, 0, targetAddr, line_num, original_line);
+            *errorsFound = True;
             return inst_count;
         }
             
         if (targetAddr == JMP_PARAM) {
                 if (errors_jmp_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
+                    *errorsFound = True;
                     return inst_count;
                 }
         }
 
         if (targetAddr == DIRECT) {
                 if (errors_one_operand_inst(original_line, wordPointer_cpy, line_num, instruction, op)) {
+                    *errorsFound = True;
                     return inst_count;
                 }
         }
@@ -261,18 +264,17 @@ addr_method operandMethod(char* arg, line_info_ptr_t *instruction, bool isDst, l
 
 bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
 {
-    bool err = True;
+    bool is_legal = True;
 
     switch (op)
     {
     case CMP:
-        err = False;
         break;
     case MOV:
     case ADD:
     case SUB:
         if (dst_mtd == IMMEDIATE)
-            err = False;
+            is_legal = False;
         break;
     case NOT:
     case CLR:
@@ -283,23 +285,23 @@ bool is_legal_lba(opcode op, addr_method src_mtd, addr_method dst_mtd)
     case RED:
     case JSR:
         if (src_mtd != 0 || dst_mtd == IMMEDIATE)
-            err = False;
+            is_legal = False;
         break;
     case LEA:
         if ((src_mtd != DIRECT && src_mtd != JMP_PARAM) || dst_mtd == IMMEDIATE)
-            err = False;
+            is_legal = False;
         break;
     case PRN:
         if (src_mtd != 0)
-            err = False;
+            is_legal = False;
     case RTS:
     case STOP:
         if (src_mtd != 0 || dst_mtd != 0)
-            err = False;
+            is_legal = False;
         break;    
     default:
-        err = False;
+        is_legal = False;
     }
-    return err;
+    return is_legal;
 }
 
