@@ -19,7 +19,6 @@ int macro_remove(char* filename, char* base_filename) {
 
     FILE* src_file_ptr;
     FILE* dst_file_ptr;
-
     new_filename = str_with_ext(base_filename, ".am");
     src_file_ptr = fopen(filename, "r");
     if (!(dst_file_ptr = fopen(new_filename, "w")))
@@ -35,11 +34,12 @@ int macro_remove(char* filename, char* base_filename) {
             fputs(line, dst_file_ptr);
             continue;
         }
+        
         main_str_ptr = skip_spaces(line); /* Points to first word. */
         cmd_length = word_length(main_str_ptr);
 
         macro_status = current_macro_status(main_str_ptr, macroFlag, cmd_length);
-
+        
         if (macro_status == MACRO_START) {
             macroFlag = True;
             main_str_ptr = skip_spaces(main_str_ptr + cmd_length);
@@ -101,11 +101,11 @@ void free_macro_array(macroArray* arr) {
 }
 
 int current_macro_status(char* str, bool macroFlag, int cmdLength) {
-    if (strncmp(str, "macro", strlen("macro")) == 0) { /* First word is 'macro'*/
+    if (strncmp(str, "mcr", strlen("mcr")) == 0 && str[3] && str[3] == ' ') { /* First word is 'macro'*/
         return MACRO_START;
-    } else if (macroFlag && strncmp(str, "endm", cmdLength)) {
+    } else if (macroFlag && strncmp(str, "endmcr", cmdLength)) {
         return MACRO_CONTENT;
-    } else if (macroFlag && strncmp(str, "endm", cmdLength) == 0) {
+    } else if (macroFlag && strncmp(str, "endmcr", cmdLength) == 0) {
         return MACRO_END;
     }
     return MACRO_NONE;

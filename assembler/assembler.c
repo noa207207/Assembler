@@ -62,7 +62,7 @@ void process_file(char* filename)
 }
 int main()
 {
-    char* filename = "prog";
+    char* filename = "test1";
 
     process_file(filename);
 
