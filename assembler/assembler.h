@@ -21,6 +21,7 @@
         return;                                      \
     }
 
+/* When  errors were found remove .am file */
 #define ERROR_FREE_AND_REMOVE(filename, headPtr) \
     {                                            \
         remove(filename);                        \

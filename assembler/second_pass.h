@@ -3,6 +3,7 @@
 
 /* Second pass encode instructions to binary uniq format and handle Entries. 
  * If success, updates the head_ptr
+ * If errors were found, not continue to output files creation.
  * Return: Success (T) / Fail (F) */
 bool process_second_pass(head_ptr_t headPtr, char* filename);
 

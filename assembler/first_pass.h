@@ -14,6 +14,7 @@
 #define INITIAL_IC 100
 
 /* Identifies the type of instruction and handles it accordingly. 
+ * If errors were found, not continue to seccond pass.
  * Return true in case errors found */
 bool process_first_pass(head_ptr_t, char*);
 
