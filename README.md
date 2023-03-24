@@ -14,8 +14,8 @@ how to use:
 
 USAGE:
 
+```
 make clean
-
 make
-
 ./assembler test_files/test1
+```
